@@ -18,44 +18,66 @@
 #
 # @param with_notary
 #   Specifies whether to include Notary functionality in the deployment.
+#   Defaults to false
 #
 # @param with_clair
 #   Specifies whether to include Clair functionality in the deployment.
+#   Defaults to false
 #
 # @param with_chartmuseum
 #   Specifies whether to include Helm Chart repository functionality in the deployment.
+#   Defaults to false
 #
 # @param harbor_ha
 #   Specifies whether to include high availability functionality in the deployment.
+#   Defaults to false
 #
 # @param download_source
 #   Specifies download location for the Harbor installation tar file.
 #
 # @param hostname
+#   The target host's hostname, which is used to access the Portal and the registry service.
+#   It should be the IP address or the fully qualified domain name (FQDN) of your target machine.
+#   Defaults to facts.fqdn
 #
 # @param ui_url_protocol
+#   http or https.
+#   Defaults to http
 #
 # @param max_job_workers
+#   The maximum number of replication workers in job service
+#   Defaults to 10
 #
 # @param customize_crt
+#   When this attribute is on, the prepare script creates private key and root certificate
+#   for the generation/verification of the registry's token.
+#   Defaults to on
 #
 # @param ssl_cert
+#   The path of SSL certificate,
 #
 # @param ssl_cert_key
+#   The path of SSL key
 #
 # @param secretkey_path
+#   The path of key for encrypt or decrypt the password of a remote registry in a replication policy.
 #
 # @param admiral_url
 #
 # @param log_rotate_count
+#  Defaults to 50
 #
 # @param log_rotate_size
+#  Defaults to 200M
 #
 # @param http_proxy
+#  Defaults to None
 #
 # @param https_proxy
+#  Defaults to None
 #
 # @param no_proxy
+#  Defaults to '127.0.0.1,localhost,ui,registry'
 #
 # @param email_identity
 #
@@ -74,6 +96,7 @@
 # @param email_insecure
 #
 # @param harbor_admin_password
+#   Defaults to Harbor12345
 #
 # @param auth_mode
 #
@@ -112,30 +135,42 @@
 # @param project_creation_restriction
 #
 # @param db_host
+#  Defaults to postgresql
 #
 # @param db_password
+#   Defaults to root123
 #
 # @param db_port
+#   Defaults to 5432
 #
 # @param db_user
+#   Defaults to postgres
 #
 # @param redis_host
+#   Defaults to redis
 #
 # @param redis_port
+#   Defaults to 6379
 #
 # @param redis_password
+#   Defaults to None
 #
 # @param redis_db_index
 #
 # @param clair_db_host
+#   Defaults to postgresql
 #
 # @param clair_db_password
+#   Defaults to root123
 #
 # @param clair_db_port
+#   Defaults to 5432
 #
 # @param clair_db_username
+#   Defaults to postgres
 #
 # @param clair_db
+#   Defaults to postgres
 #
 # @param clair_updaters_interval
 #
