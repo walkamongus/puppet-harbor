@@ -1,5 +1,7 @@
 ---
-harbor::version: '1.7.0'
+harbor::version: '1.7.5'
+harbor::release: '1.7.0'
+harbor::checksum: '6da2f6ff3be598b5c657a9b204bda8af'
 harbor::installer: 'offline'
 harbor::with_notary: false
 harbor::with_clair: false

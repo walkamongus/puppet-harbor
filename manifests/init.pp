@@ -8,7 +8,10 @@
 # @note For full configuration parameter documentation, see the {https://github.com/goharbor/harbor/blob/master/docs/installation_guide.md Harbor Installation Guide}.
 #
 # @param version
-#   Specifies the Harbor release version to install. See available releases at {https://github.com/goharbor/harbor/releases Harbor Releases}
+#   Specifies the Harbor version to install. See available releases at {https://github.com/goharbor/harbor/releases Harbor Releases}
+#
+# @param release
+#   Specifies the Harbor release for the download URL.
 #
 # @param installer
 #   Specifies which installer type to use. Note that not every release has both installer types available.
@@ -158,7 +161,9 @@
 #
 class harbor (
   Pattern[/\d+\.\d+\.\d+.*/] $version,
+  Pattern[/\d+\.\d+\.\d+.*/] $release,
   Enum['offline','online'] $installer,
+  String  $checksum,
   Boolean $with_notary,
   Boolean $with_clair,
   Boolean $with_chartmuseum,
@@ -227,7 +232,7 @@ class harbor (
   Variant[Stdlib::Absolutepath,String[0,0]] $registry_custom_ca_bundle,
   Variant[Boolean,String[0,0]] $reload_config,
   String $skip_reload_env_pattern,
-  Stdlib::Httpurl $download_source = "https://storage.googleapis.com/harbor-releases/release-${version}/harbor-${installer}-installer-v${version}.tgz",
+  Stdlib::Httpurl $download_source = "https://storage.googleapis.com/harbor-releases/release-${release}/harbor-${installer}-installer-v${version}.tgz",
 ){
 
   include 'docker'
@@ -245,6 +250,7 @@ class harbor (
   class { 'harbor::install':
     installer       => $installer,
     version         => $version,
+    checksum        => $checksum,
     download_source => $download_source,
     proxy_server    => $_proxy_server,
   }
