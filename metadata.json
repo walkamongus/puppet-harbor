@@ -10,7 +10,7 @@
   "dependencies": [
     {
       "name": "puppetlabs/stdlib",
-      "version_requirement": ">= 4.25.0 < 5.0.0"
+      "version_requirement": ">= 4.25.0 < 6.0.0"
     },
     {
       "name": "puppet/archive",
@@ -19,6 +19,10 @@
     {
       "name": "puppetlabs/docker",
       "version_requirement": ">= 3.0.0 < 4.0.0"
+    },
+    {
+      "name": "puppetlabs/apt",
+      "version_requirement": ">= 4.4.0 < 7.0.0"
     }
   ],
   "operatingsystem_support": [
@@ -44,6 +48,12 @@
       "operatingsystem": "Scientific",
       "operatingsystemrelease": [
         "7"
+      ]
+    },
+    {
+      "operatingsystem": "Debian",
+      "operatingsystemrelease": [
+        "9"
       ]
     }
   ],

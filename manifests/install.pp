@@ -2,6 +2,7 @@
 class harbor::install (
   $installer,
   $version,
+  $checksum,
   $download_source,
   $proxy_server = undef,
 ){
@@ -16,14 +17,16 @@ class harbor::install (
   }
 
   archive { "/tmp/harbor-${installer}-installer-v${version}.tgz":
-    ensure       => present,
-    extract      => true,
-    extract_path => "/opt/harbor-v${version}",
-    source       => $download_source,
-    creates      => "/opt/harbor-v${version}/harbor",
-    cleanup      => true,
-    proxy_server => $proxy_server,
-    require      => File["/opt/harbor-v${version}"],
+    ensure        => present,
+    extract       => true,
+    extract_path  => "/opt/harbor-v${version}",
+    source        => $download_source,
+    checksum      => $checksum,
+    checksum_type => 'md5',
+    creates       => "/opt/harbor-v${version}/harbor",
+    cleanup       => true,
+    proxy_server  => $proxy_server,
+    require       => File["/opt/harbor-v${version}"],
   }
 
   file { '/opt/harbor':

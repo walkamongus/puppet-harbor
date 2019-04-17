@@ -28,7 +28,7 @@ This module will install Docker and run Harbor through docker-compose as this is
 
 This will set up and start harbor with the completely default harbor.cfg configuration.
 
-Make sure your target system meets the Harbor prerequisites outlined at https://github.com/goharbor/harbor/blob/master/docs/installation_guide.md#prerequisites-for-the-target-host  
+Make sure your target system meets the Harbor prerequisites outlined at https://github.com/goharbor/harbor/blob/master/docs/installation_guide.md#prerequisites-for-the-target-host
 
 ## Usage
 
@@ -36,8 +36,14 @@ Include usage examples for common use cases in the **Usage** section. Show your 
 
 ## Limitations
 
-TBD.
+This module supports:
+
+    Centos 7.0
+    RedHat 7.0
+    Debian 9.0
+
+For an extensive list of supported operating systems, see [metadata.json](metadata.json).
 
 ## Development
 
-TBD.
+If you would like to contribute to this module, see the guidelines in [CONTRIBUTING.MD](CONTRIBUTING.md).

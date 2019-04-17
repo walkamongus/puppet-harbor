@@ -8,51 +8,76 @@
 # @note For full configuration parameter documentation, see the {https://github.com/goharbor/harbor/blob/master/docs/installation_guide.md Harbor Installation Guide}.
 #
 # @param version
-#   Specifies the Harbor release version to install. See available releases at {https://github.com/goharbor/harbor/releases Harbor Releases}
+#   Specifies the Harbor version to install. See available releases at {https://github.com/goharbor/harbor/releases Harbor Releases}
+#
+# @param release
+#   Specifies the Harbor release for the download URL.
 #
 # @param installer
 #   Specifies which installer type to use. Note that not every release has both installer types available.
 #
 # @param with_notary
 #   Specifies whether to include Notary functionality in the deployment.
+#   Defaults to false
 #
 # @param with_clair
 #   Specifies whether to include Clair functionality in the deployment.
+#   Defaults to false
 #
 # @param with_chartmuseum
 #   Specifies whether to include Helm Chart repository functionality in the deployment.
+#   Defaults to false
 #
 # @param harbor_ha
 #   Specifies whether to include high availability functionality in the deployment.
+#   Defaults to false
 #
 # @param download_source
 #   Specifies download location for the Harbor installation tar file.
 #
 # @param hostname
+#   The target host's hostname, which is used to access the Portal and the registry service.
+#   It should be the IP address or the fully qualified domain name (FQDN) of your target machine.
+#   Defaults to facts.fqdn
 #
 # @param ui_url_protocol
+#   http or https.
+#   Defaults to http
 #
 # @param max_job_workers
+#   The maximum number of replication workers in job service
+#   Defaults to 10
 #
 # @param customize_crt
+#   When this attribute is on, the prepare script creates private key and root certificate
+#   for the generation/verification of the registry's token.
+#   Defaults to on
 #
 # @param ssl_cert
+#   The path of SSL certificate,
 #
 # @param ssl_cert_key
+#   The path of SSL key
 #
 # @param secretkey_path
+#   The path of key for encrypt or decrypt the password of a remote registry in a replication policy.
 #
 # @param admiral_url
 #
 # @param log_rotate_count
+#  Defaults to 50
 #
 # @param log_rotate_size
+#  Defaults to 200M
 #
 # @param http_proxy
+#  Defaults to None
 #
 # @param https_proxy
+#  Defaults to None
 #
 # @param no_proxy
+#  Defaults to '127.0.0.1,localhost,ui,registry'
 #
 # @param email_identity
 #
@@ -71,6 +96,7 @@
 # @param email_insecure
 #
 # @param harbor_admin_password
+#   Defaults to Harbor12345
 #
 # @param auth_mode
 #
@@ -109,30 +135,42 @@
 # @param project_creation_restriction
 #
 # @param db_host
+#  Defaults to postgresql
 #
 # @param db_password
+#   Defaults to root123
 #
 # @param db_port
+#   Defaults to 5432
 #
 # @param db_user
+#   Defaults to postgres
 #
 # @param redis_host
+#   Defaults to redis
 #
 # @param redis_port
+#   Defaults to 6379
 #
 # @param redis_password
+#   Defaults to None
 #
 # @param redis_db_index
 #
 # @param clair_db_host
+#   Defaults to postgresql
 #
 # @param clair_db_password
+#   Defaults to root123
 #
 # @param clair_db_port
+#   Defaults to 5432
 #
 # @param clair_db_username
+#   Defaults to postgres
 #
 # @param clair_db
+#   Defaults to postgres
 #
 # @param clair_updaters_interval
 #
@@ -158,7 +196,9 @@
 #
 class harbor (
   Pattern[/\d+\.\d+\.\d+.*/] $version,
+  Pattern[/\d+\.\d+\.\d+.*/] $release,
   Enum['offline','online'] $installer,
+  String  $checksum,
   Boolean $with_notary,
   Boolean $with_clair,
   Boolean $with_chartmuseum,
@@ -227,7 +267,7 @@ class harbor (
   Variant[Stdlib::Absolutepath,String[0,0]] $registry_custom_ca_bundle,
   Variant[Boolean,String[0,0]] $reload_config,
   String $skip_reload_env_pattern,
-  Stdlib::Httpurl $download_source = "https://storage.googleapis.com/harbor-releases/release-${version}/harbor-${installer}-installer-v${version}.tgz",
+  Stdlib::Httpurl $download_source = "https://storage.googleapis.com/harbor-releases/release-${release}/harbor-${installer}-installer-v${version}.tgz",
 ){
 
   include 'docker'
@@ -245,6 +285,7 @@ class harbor (
   class { 'harbor::install':
     installer       => $installer,
     version         => $version,
+    checksum        => $checksum,
     download_source => $download_source,
     proxy_server    => $_proxy_server,
   }
