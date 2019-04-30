@@ -21,7 +21,7 @@ describe 'harbor' do
           end
           it { is_expected.to contain_file('/opt/harbor-v1.7.5') }
           it { is_expected.to contain_file('/opt/harbor') }
-          it { is_expected.to contain_docker__image('goharbor/harbor-ui') }
+          it { is_expected.to contain_docker__image('goharbor/harbor-log') }
         end
       end
 

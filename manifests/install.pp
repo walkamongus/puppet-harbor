@@ -36,7 +36,11 @@ class harbor::install (
   }
 
   if $installer == 'offline' {
-    docker::image { 'goharbor/harbor-ui':
+    # The harbor image tar contains all Harbor images in a single archive.
+    # The title below is used to locate a single existing image name to
+    # prevent the docker::image resource from executing each puppet run.
+    # goharbor/harbor-log exists in both the 1.6.x and 1.7.x releases.
+    docker::image { 'goharbor/harbor-log':
       docker_tar => '/opt/harbor/harbor*.tar.gz',
       subscribe  => File['/opt/harbor'],
     }
