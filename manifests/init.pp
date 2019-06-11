@@ -173,8 +173,6 @@
 # @param redis_password
 #   Defaults to None
 #
-# @param redis_db_index
-#
 # @param redis_registry_db_index
 #
 # @param redis_jobservice_db_index
@@ -281,7 +279,6 @@ class harbor (
   Stdlib::Host $redis_host,
   Stdlib::Port $redis_port,
   String $redis_password,
-  Pattern[/^[0-3](,[0-3])*$/] $redis_db_index,
   Integer $redis_registry_db_index,
   Integer $redis_jobservice_db_index,
   Integer $redis_chartmuseum_db_index,
@@ -324,6 +321,8 @@ class harbor (
     proxy_server    => $_proxy_server,
   }
   contain 'harbor::install'
+
+  $redis_db_index = "${redis_registry_db_index},${redis_jobservice_db_index},${redis_chartmuseum_db_index}"
 
   class { 'harbor::config':
     cfg_version                      => $_cfg_version,

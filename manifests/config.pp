@@ -107,7 +107,7 @@ class harbor::config (
         'db_password'                      => $db_password,
         'db_port'                          => $db_port,
         'db_user'                          => $db_user,
-        'external_redis'                   => $external_redis
+        'external_redis'                   => $external_redis,
         'redis_host'                       => $redis_host,
         'redis_port'                       => $redis_port,
         'redis_password'                   => $redis_password,

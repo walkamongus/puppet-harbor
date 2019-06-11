@@ -60,7 +60,6 @@ harbor::external_redis: false
 harbor::redis_host: 'redis'
 harbor::redis_port: 6379
 harbor::redis_password: ''
-harbor::redis_db_index: '1,2,3'
 harbor::redis_registry_db_index: 1
 harbor::redis_jobservice_db_index: 2
 harbor::redis_chartmuseum_db_index: 3
