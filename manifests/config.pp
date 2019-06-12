@@ -78,7 +78,7 @@ class harbor::config (
 
   assert_private()
 
-  if versioncmp($cfg_version, '1.8.0') > 0 {
+  if versioncmp($cfg_version, '1.8.0') >= 0 {
     file { '/opt/harbor/harbor.yml':
       owner   => 'root',
       group   => 'root',
