@@ -380,7 +380,7 @@ class harbor (
     redis_port                       => $redis_port,
     redis_password                   => $redis_password,
     redis_db_index                   => $redis_db_index,
-    redis_registry_db_index          => $redis_registry_db_index, 
+    redis_registry_db_index          => $redis_registry_db_index,
     redis_jobservice_db_index        => $redis_jobservice_db_index,
     redis_chartmuseum_db_index       => $redis_chartmuseum_db_index,
     clair_db_host                    => $clair_db_host,
