@@ -73,7 +73,7 @@ harbor::uaa_endpoint: 'uaa.mydomain.org'
 harbor::uaa_clientid: 'id'
 harbor::uaa_clientsecret: 'secret'
 harbor::uaa_verify_cert: true
-harbor::uaa_ca_cert: '/path/to/ca.pem'
+harbor::uaa_ca_cert: ''
 harbor::registry_storage_provider_name: 'filesystem'
 harbor::registry_storage_provider_config: ''
 harbor::registry_custom_ca_bundle: ''

@@ -292,7 +292,7 @@ class harbor (
   String $uaa_clientid,
   String $uaa_clientsecret,
   Boolean $uaa_verify_cert,
-  Stdlib::Absolutepath $uaa_ca_cert,
+  String $uaa_ca_cert,
   Enum['filesystem','s3','gcs','azure','swift','oss'] $registry_storage_provider_name,
   String $registry_storage_provider_config,
   Variant[Stdlib::Absolutepath,String[0,0]] $registry_custom_ca_bundle,
@@ -411,6 +411,7 @@ class harbor (
   contain 'harbor::prepare'
 
   class { 'harbor::service':
+    cfg_version      => $_cfg_version,
     with_notary      => $with_notary,
     with_clair       => $with_clair,
     with_chartmuseum => $with_chartmuseum,

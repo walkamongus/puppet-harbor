@@ -178,7 +178,7 @@ external_redis:
   chartmuseum_db_index: <%= $redis_chartmuseum_db_index %>
 <% } %>
 
-<% if $uaa_ca_cert { -%>
+<% if ! empty($uaa_ca_cert) { -%>
 # Uncomment uaa for trusting the certificate of uaa instance that is hosted via self-signed cert.
 uaa:
   ca_file: <%= $uaa_ca_cert %>
