@@ -48,6 +48,10 @@
 #   The maximum number of replication workers in job service
 #   Defaults to 10
 #
+# @param absolute_url
+#  Change the value of absolute_url to enabled can enable absolute url in chart
+#  Defaults to disabled
+#
 # @param customize_crt
 #   When this attribute is on, the prepare script creates private key and root certificate
 #   for the generation/verification of the registry's token.
@@ -64,11 +68,19 @@
 #
 # @param admiral_url
 #
+# @param external_url
+#
+# @param log_level
+#  Defaults to 'info'
+#
 # @param log_rotate_count
 #  Defaults to 50
 #
 # @param log_rotate_size
 #  Defaults to 200M
+#
+# @param log_location
+#  Defaults to /var/log/harbor
 #
 # @param http_proxy
 #  Defaults to None
@@ -78,6 +90,9 @@
 #
 # @param no_proxy
 #  Defaults to '127.0.0.1,localhost,ui,registry'
+#
+# @param data_volume
+#  Defaults to '/data'
 #
 # @param email_identity
 #
@@ -146,6 +161,9 @@
 # @param db_user
 #   Defaults to postgres
 #
+# @param external_redis
+#   Defaults to false
+#
 # @param redis_host
 #   Defaults to redis
 #
@@ -155,7 +173,12 @@
 # @param redis_password
 #   Defaults to None
 #
-# @param redis_db_index
+# @param redis_registry_db_index
+#
+# @param redis_jobservice_db_index
+#
+# @param redis_chartmuseum_db_index
+#
 #
 # @param clair_db_host
 #   Defaults to postgresql
@@ -199,6 +222,7 @@ class harbor (
   Pattern[/\d+\.\d+\.\d+.*/] $release,
   Enum['offline','online'] $installer,
   String  $checksum,
+  Boolean $external_redis,
   Boolean $with_notary,
   Boolean $with_clair,
   Boolean $with_chartmuseum,
@@ -206,16 +230,21 @@ class harbor (
   Stdlib::Host $hostname,
   Enum['http','https'] $ui_url_protocol,
   Integer $max_job_workers,
+  Enum['enabled','disabled'] $absolute_url,
   Enum['on','off'] $customize_crt,
   Stdlib::Absolutepath $ssl_cert,
   Stdlib::Absolutepath $ssl_cert_key,
   Stdlib::Absolutepath $secretkey_path,
   Variant[Enum['NA'],Stdlib::Httpurl] $admiral_url,
+  Variant[Stdlib::Httpurl,String[0,0]] $external_url,
+  Enum['debug','info','warning','error','fatal'] $log_level,
   Integer $log_rotate_count,
   String $log_rotate_size,
+  String $log_location,
   Variant[Stdlib::Httpurl,String[0,0]] $http_proxy,
   Variant[Stdlib::Httpurl,String[0,0]] $https_proxy,
   String $no_proxy,
+  String $data_volume,
   String $email_identity,
   Stdlib::Host $email_server,
   Integer $email_server_port,
@@ -250,7 +279,9 @@ class harbor (
   Stdlib::Host $redis_host,
   Stdlib::Port $redis_port,
   String $redis_password,
-  Pattern[/^[0-3](,[0-3])*$/] $redis_db_index,
+  Integer $redis_registry_db_index,
+  Integer $redis_jobservice_db_index,
+  Integer $redis_chartmuseum_db_index,
   Stdlib::Host $clair_db_host,
   String $clair_db_password,
   Stdlib::Port $clair_db_port,
@@ -261,7 +292,7 @@ class harbor (
   String $uaa_clientid,
   String $uaa_clientsecret,
   Boolean $uaa_verify_cert,
-  Stdlib::Absolutepath $uaa_ca_cert,
+  String $uaa_ca_cert,
   Enum['filesystem','s3','gcs','azure','swift','oss'] $registry_storage_provider_name,
   String $registry_storage_provider_config,
   Variant[Stdlib::Absolutepath,String[0,0]] $registry_custom_ca_bundle,
@@ -291,21 +322,28 @@ class harbor (
   }
   contain 'harbor::install'
 
+  $redis_db_index = "${redis_registry_db_index},${redis_jobservice_db_index},${redis_chartmuseum_db_index}"
+
   class { 'harbor::config':
     cfg_version                      => $_cfg_version,
     hostname                         => $hostname,
     ui_url_protocol                  => $ui_url_protocol,
     max_job_workers                  => $max_job_workers,
+    absolute_url                     => $absolute_url,
     customize_crt                    => $customize_crt,
     ssl_cert                         => $ssl_cert,
     ssl_cert_key                     => $ssl_cert_key,
     secretkey_path                   => $secretkey_path,
     admiral_url                      => $admiral_url,
+    external_url                     => $external_url,
+    log_level                        => $log_level,
     log_rotate_count                 => $log_rotate_count,
     log_rotate_size                  => $log_rotate_size,
+    log_location                     => $log_location,
     http_proxy                       => $http_proxy,
     https_proxy                      => $https_proxy,
     no_proxy                         => $no_proxy,
+    data_volume                      => $data_volume,
     email_identity                   => $email_identity,
     email_server                     => $email_server,
     email_server_port                => $email_server_port,
@@ -337,10 +375,14 @@ class harbor (
     db_password                      => $db_password,
     db_port                          => $db_port,
     db_user                          => $db_user,
+    external_redis                   => $external_redis,
     redis_host                       => $redis_host,
     redis_port                       => $redis_port,
     redis_password                   => $redis_password,
     redis_db_index                   => $redis_db_index,
+    redis_registry_db_index          => $redis_registry_db_index,
+    redis_jobservice_db_index        => $redis_jobservice_db_index,
+    redis_chartmuseum_db_index       => $redis_chartmuseum_db_index,
     clair_db_host                    => $clair_db_host,
     clair_db_password                => $clair_db_password,
     clair_db_port                    => $clair_db_port,
@@ -369,6 +411,7 @@ class harbor (
   contain 'harbor::prepare'
 
   class { 'harbor::service':
+    cfg_version      => $_cfg_version,
     with_notary      => $with_notary,
     with_clair       => $with_clair,
     with_chartmuseum => $with_chartmuseum,

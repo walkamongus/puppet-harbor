@@ -9,7 +9,7 @@ After=docker.service
 Restart=always
 # Shutdown container (if running) when unit is stopped
 ExecStartPre=/usr/local/bin/docker-compose <%= $compose_files %> down -v
-ExecStart=/usr/local/bin/docker-compose <%= $compose_files %>  up --remove-orphans
+ExecStart=/usr/local/bin/docker-compose <%= $compose_files %> up --remove-orphans
 ExecStop=/usr/local/bin/docker-compose <%= $compose_files %> down -v
 [Install]
 WantedBy=multi-user.target

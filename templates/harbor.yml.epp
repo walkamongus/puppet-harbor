@@ -1,0 +1,185 @@
+<%- |
+  $cfg_version,
+  $hostname,
+  $ui_url_protocol,
+  $max_job_workers,
+  $absolute_url,
+  $customize_crt,
+  $ssl_cert,
+  $ssl_cert_key,
+  $secretkey_path,
+  $external_url,
+  $log_level,
+  $log_rotate_count,
+  $log_rotate_size,
+  $log_location,
+  $http_proxy,
+  $https_proxy,
+  $no_proxy,
+  $data_volume,
+  $harbor_admin_password,
+  $db_host,
+  $db_password,
+  $db_port,
+  $db_user,
+  $external_redis,
+  $redis_host,
+  $redis_port,
+  $redis_password,
+  $redis_registry_db_index,
+  $redis_jobservice_db_index,
+  $redis_chartmuseum_db_index,
+  $clair_db_host,
+  $clair_db_password,
+  $clair_db_port,
+  $clair_db_username,
+  $clair_db,
+  $clair_updaters_interval,
+  $uaa_ca_cert,
+  $registry_storage_provider_name,
+  $registry_storage_provider_config,
+  $registry_custom_ca_bundle,
+  $reload_config,
+  $skip_reload_env_pattern,
+| -%>
+# Configuration file of Harbor
+
+# The IP address or hostname to access admin UI and registry service.
+# DO NOT use localhost or 127.0.0.1, because Harbor needs to be accessed by external clients.
+hostname: <%= $hostname %>
+
+# http related config
+http:
+  # port for http, default is 80. If https enabled, this port will redirect to https port
+  port: 80
+
+<% if $ui_url_protocol == 'https' { -%>
+# https related config
+https:
+ # https port for harbor, default is 443
+ port: 443
+ # The path of cert and key files for nginx
+ certificate: <%= $ssl_cert %>
+ private_key: <%= $ssl_cert_key %>
+<% } %>
+
+<% if ! empty($external_url) { -%>
+# Uncomment external_url if you want to enable external proxy
+# And when it enabled the hostname will no longer used
+# external_url: <%= $external_url %>
+<% } -%>
+
+# The initial password of Harbor admin
+# It only works in first time to install harbor
+# Remember Change the admin password from UI after launching Harbor.
+harbor_admin_password: <%= $harbor_admin_password %>
+
+# Harbor DB configuration
+database:
+  # The password for the root user of Harbor DB. Change this before any production use.
+  password: <%= $db_password %>
+
+# The default data volume
+data_volume: <%= $data_volume %>
+
+# Harbor Storage settings by default is using /data dir on local filesystem
+# Uncomment storage_service setting If you want to using external storage
+# storage_service:
+#   # ca_bundle is the path to the custom root ca certificate, which will be injected into the truststore
+#   # of registry's and chart repository's containers.  This is usually needed when the user hosts a internal storage with self signed certificate.
+#   ca_bundle:
+
+#   # storage backend, default is filesystem, options include filesystem, azure, gcs, s3, swift and oss
+#   # for more info about this configuration please refer https://docs.docker.com/registry/configuration/
+#   filesystem:
+#     maxthreads: 100
+#   # set disable to true when you want to disable registry redirect
+#   redirect:
+#     disabled: false
+
+# Clair configuration
+clair: 
+  # The interval of clair updaters, the unit is hour, set to 0 to disable the updaters.
+  updaters_interval: <%= $clair_updaters_interval %>
+
+  # Config http proxy for Clair, e.g. http://my.proxy.com:3128
+  # Clair doesn't need to connect to harbor internal components via http proxy.
+  http_proxy: <%= $http_proxy %>
+  https_proxy: <%= $https_proxy %>
+  no_proxy: <%= $no_proxy %>
+
+jobservice:
+  # Maximum number of job workers in job service  
+  max_job_workers: <%= $max_job_workers %>
+
+chart:
+  # Change the value of absolute_url to enabled can enable absolute url in chart
+  absolute_url: <%= absolute_url %>
+
+# Log configurations
+log:
+  # options are debug, info, warning, error, fatal
+  level: <%= $log_level %>
+  # Log files are rotated log_rotate_count times before being removed. If count is 0, old versions are removed rather than rotated.
+  rotate_count: <%= $log_rotate_count %>
+  # Log files are rotated only if they grow bigger than log_rotate_size bytes. If size is followed by k, the size is assumed to be in kilobytes. 
+  # If the M is used, the size is in megabytes, and if G is used, the size is in gigabytes. So size 100, size 100k, size 100M and size 100G 
+  # are all valid.
+  rotate_size: <%= $log_rotate_size %>
+  # The directory on your host that store log
+  location: <%= $log_location %>
+
+#This attribute is for migrator to detect the version of the .cfg file, DO NOT MODIFY!
+_version: <%= $cfg_version %>
+
+# Uncomment external_database if using external database. Currently only support POSTGRES. 
+# Four databases are needed to be create first by users for Harbor core, Clair, Notary server 
+# and Notary signer. And the tables will be generated automatically when Harbor starting up.
+# NOTE: external_database is unable to custom attributes individually, you must do them in block.
+# external_database:
+#   harbor:
+#     host: harbor_db_host
+#     port: harbor_db_port
+#     db_name: harbor_db_name
+#     username: harbor_db_username
+#     password: harbor_db_password
+#     ssl_mode: disable
+#   clair:
+#     host: clair_db_host
+#     port: clair_db_port
+#     db_name: clair_db_name
+#     username: clair_db_username
+#     password: clair_db_password
+#     ssl_mode: disable
+#   notary_signer:
+#     host: notary_signer_db_host
+#     port: notary_signer_db_port
+#     db_name: notary_signer_db_name
+#     username: notary_signer_db_username
+#     password: notary_signer_db_password
+#     ssl_mode: disable
+#   notary_server:
+#     host: notary_server_db_host
+#     port: notary_server_db_port
+#     db_name: notary_server_db_name
+#     username: notary_server_db_username
+#     password: notary_server_db_password
+#     ssl_mode: disable
+
+<% if $external_redis == 'true' { -%>
+# Uncomment external_redis if using external Redis server
+external_redis:
+  host: <%= $redis_host %>
+  port: <%= $redis_port %>
+  password: <%= $redis_password %>
+  # db_index 0 is for core, it's unchangeable
+  registry_db_index: <%= $redis_registry_db_index %>
+  jobservice_db_index: <%= $redis_jobservice_db_index %>
+  chartmuseum_db_index: <%= $redis_chartmuseum_db_index %>
+<% } %>
+
+<% if ! empty($uaa_ca_cert) { -%>
+# Uncomment uaa for trusting the certificate of uaa instance that is hosted via self-signed cert.
+uaa:
+  ca_file: <%= $uaa_ca_cert %>
+<% } %>
