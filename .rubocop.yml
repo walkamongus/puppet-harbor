@@ -2,7 +2,7 @@
 require: rubocop-rspec
 AllCops:
   DisplayCopNames: true
-  TargetRubyVersion: '2.4'
+  TargetRubyVersion: '2.1'
   Include:
   - "./**/*.rb"
   Exclude:
@@ -63,11 +63,7 @@ Style/TrailingCommaInArguments:
   Description: Prefer always trailing comma on multiline argument lists. This makes
     diffs, and re-ordering nicer.
   EnforcedStyleForMultiline: comma
-Style/TrailingCommaInArrayLiteral:
-  Description: Prefer always trailing comma on multiline literals. This makes diffs,
-    and re-ordering nicer.
-  EnforcedStyleForMultiline: comma
-Style/TrailingCommaInHashLiteral:
+Style/TrailingCommaInLiteral:
   Description: Prefer always trailing comma on multiline literals. This makes diffs,
     and re-ordering nicer.
   EnforcedStyleForMultiline: comma
@@ -119,8 +115,6 @@ RSpec/MultipleExpectations:
 RSpec/NestedGroups:
   Enabled: false
 Style/AsciiComments:
-  Enabled: false
-Style/HashSyntax:
   Enabled: false
 Style/IfUnlessModifier:
   Enabled: false
