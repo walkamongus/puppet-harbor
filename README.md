@@ -9,8 +9,9 @@
     * [What harbor affects](#what-harbor-affects)
     * [Beginning with harbor](#beginning-with-harbor)
 3. [Usage - Configuration options and additional functionality](#usage)
-4. [Limitations - OS compatibility, etc.](#limitations)
-5. [Development - Guide for contributing to the module](#development)
+4. [Advanced features](#advanced-features)
+5. [Limitations - OS compatibility, etc.](#limitations)
+6. [Development - Guide for contributing to the module](#development)
 
 ## Description
 
@@ -34,7 +35,66 @@ Make sure your target system meets the Harbor prerequisites outlined at https://
 
 Include usage examples for common use cases in the **Usage** section. Show your users how to use your module to solve problems, and be sure to include code examples. Include three to five examples of the most important or common tasks a user can accomplish with your module. Show users how to accomplish more complex tasks that involve different types, classes, and functions working in tandem.
 
+## Advanced features
+
+This module comes with types and providers to manage harbor user setttings (https://github.com/goharbor/harbor/blob/master/docs/configure_user_settings.md#harbor-user-settings) and harbor projects via Harbor's swagger API.
+
+To use these features you must install the harbor-swagger-client gem (https://github.com/bt-lemery/harbor-swagger-client) and create the file '/etc/puppetlabs/swagger.yaml' on your Harbor server with the following (minimum) content:
+
+```
+---
+username: 'admin'
+password: '<admin_default_password>'
+```
+
+If using Harbor with SSL enabled you should also include:
+```
+scheme: 'https'
+```
+
+If using Harbor with a self-signed SSL certificate you should also include:
+```
+verify_ssl: false
+verify_ssl_host: false
+```
+
+### User settings
+
+The module currently supports the ability to provide user authentication via your own LDAP store.  To enable this create a 'harbor_user_settings' resource like:
+```
+  harbor_user_settings { 'ldap_settings':
+    auth_mode      => 'ldap_auth',
+    ldap_url       => 'ldap://example.org',
+    ldap_base_dn   => 'dc=example,dc=org',
+    ldap_search_dn => '<ldap_bind_user>',
+  }
+```
+See 'Limitations' below.
+
+### Projects
+
+It is possible to create projects using the 'harbor_project' resource.  You can also manage user membership in projects, and control whether projects are public or private at creation time:
+```
+  harbor_project { 'my-project':
+    ensure  => present,
+    public  => 'true',
+    members => ['bob', 'alice'],
+  }
+```
+All members will be created as 'Developers' giving them full Read and Write access to the project and its associated repositories.
+
+See 'Limitations' below.
+
 ## Limitations
+
+If you wish to enable ldap auth you must do so before adding any local user accounts.  If you have created any local user accounts it is not possible to modify the auth_mode from the default 'db_auth'.
+
+The Harbor API currently provides no facility for passing the password for the ldap user passed in the above harbor_user_settings resource.  You will need to login to the U
+I to set the user password.
+
+It is currently not possible to modify whether a project is 'public' or 'private' after creation via this module.
+
+Adding group membership to harbor projects is a work-in-progress.
 
 This module supports:
 
