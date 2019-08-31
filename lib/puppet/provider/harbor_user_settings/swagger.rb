@@ -1,5 +1,6 @@
-Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
+# frozen_string_literal: true
 
+Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   mk_resource_methods
 
   def do_login
@@ -21,7 +22,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def get_config(api_instance)
     begin
-      config = api_instance.configurations_get()
+      config = api_instance.configurations_get
     rescue SwaggerClient::ApiError => e
       puts "Exception when calling ProductsApi->configurations_get: #{e}"
     end
@@ -29,13 +30,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def auth_mode
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.auth_mode.value
   end
 
-  def auth_mode=(value)
-    api_instance = do_login()
+  def auth_mode=(_value)
+    api_instance = do_login
 
     configurations = {
       "auth_mode": resource[:auth_mode]
@@ -48,15 +49,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     end
   end
 
-
   def email_from
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.email_from.value
   end
 
-  def email_from=(value)
-    api_instance = do_login()
+  def email_from=(_value)
+    api_instance = do_login
 
     configurations = {
       "email_from": resource[:email_from]
@@ -70,13 +70,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def email_host
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.email_host.value
   end
 
-  def email_host=(value)
-    api_instance = do_login()
+  def email_host=(_value)
+    api_instance = do_login
 
     configurations = {
       "email_host": resource[:email_host]
@@ -90,13 +90,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def email_port
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.email_port.value
   end
 
-  def email_port=(value)
-    api_instance = do_login()
+  def email_port=(_value)
+    api_instance = do_login
 
     configurations = {
       "email_port": resource[:email_port]
@@ -110,13 +110,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def email_identity
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.email_identity.value
   end
 
-  def email_identity=(value)
-    api_instance = do_login()
+  def email_identity=(_value)
+    api_instance = do_login
 
     configurations = {
       "email_identity": resource[:email_identity]
@@ -130,13 +130,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def email_username
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.email_username.value
   end
 
-  def email_username=(value)
-    api_instance = do_login()
+  def email_username=(_value)
+    api_instance = do_login
 
     configurations = {
       "email_username": resource[:email_username]
@@ -150,13 +150,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def email_ssl
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.email_ssl.value
   end
 
-  def email_ssl=(value)
-    api_instance = do_login()
+  def email_ssl=(_value)
+    api_instance = do_login
 
     configurations = {
       "email_ssl": resource[:email_ssl]
@@ -170,13 +170,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def email_insecure
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.email_insecure.value
   end
 
-  def email_insecure=(value)
-    api_instance = do_login()
+  def email_insecure=(_value)
+    api_instance = do_login
 
     configurations = {
       "email_insecure": resource[:email_insecure]
@@ -190,13 +190,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def ldap_url
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.ldap_url.value
   end
 
-  def ldap_url=(value)
-    api_instance = do_login()
+  def ldap_url=(_value)
+    api_instance = do_login
 
     configurations = {
       "ldap_url": resource[:ldap_url]
@@ -210,13 +210,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def ldap_base_dn
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.ldap_base_dn.value
   end
 
-  def ldap_base_dn=(value)
-    api_instance = do_login()
+  def ldap_base_dn=(_value)
+    api_instance = do_login
 
     configurations = {
       "ldap_base_dn": resource[:ldap_base_dn]
@@ -230,13 +230,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def ldap_filter
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.ldap_filter.value
   end
 
-  def ldap_filter=(value)
-    api_instance = do_login()
+  def ldap_filter=(_value)
+    api_instance = do_login
 
     configurations = {
       "ldap_filter": resource[:ldap_filter]
@@ -250,13 +250,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def ldap_scope
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.ldap_scope.value.to_s
   end
 
-  def ldap_scope=(value)
-    api_instance = do_login()
+  def ldap_scope=(_value)
+    api_instance = do_login
 
     configurations = {
       "ldap_scope": resource[:ldap_scope]
@@ -270,13 +270,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def ldap_uid
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.ldap_uid.value
   end
 
-  def ldap_uid=(value)
-    api_instance = do_login()
+  def ldap_uid=(_value)
+    api_instance = do_login
 
     configurations = {
       "ldap_uid": resource[:ldap_uid]
@@ -290,13 +290,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def ldap_search_dn
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.ldap_search_dn.value
   end
 
-  def ldap_search_dn=(value)
-    api_instance = do_login()
+  def ldap_search_dn=(_value)
+    api_instance = do_login
 
     configurations = {
       "ldap_search_dn": resource[:ldap_search_dn]
@@ -310,13 +310,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def ldap_timeout
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.ldap_timeout.value
   end
 
-  def ldap_timeout=(value)
-    api_instance = do_login()
+  def ldap_timeout=(_value)
+    api_instance = do_login
 
     configurations = {
       "ldap_timeout": resource[:ldap_timeout]
@@ -330,13 +330,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def ldap_group_attribute_name
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.ldap_group_attribute_name.value
   end
 
-  def ldap_group_attribute_name=(value)
-    api_instance = do_login()
+  def ldap_group_attribute_name=(_value)
+    api_instance = do_login
 
     configurations = {
       "ldap_group_attribute_name": resource[:ldap_group_attribute_name]
@@ -350,13 +350,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def ldap_group_base_dn
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.ldap_group_base_dn.value
   end
 
-  def ldap_group_base_dn=(value)
-    api_instance = do_login()
+  def ldap_group_base_dn=(_value)
+    api_instance = do_login
 
     configurations = {
       "ldap_group_base_dn": resource[:ldap_group_base_dn]
@@ -370,13 +370,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def ldap_group_search_filter
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.ldap_group_search_filter.value
   end
 
-  def ldap_group_search_filter=(value)
-    api_instance = do_login()
+  def ldap_group_search_filter=(_value)
+    api_instance = do_login
 
     configurations = {
       "ldap_group_search_filter": resource[:ldap_group_search_filter]
@@ -390,13 +390,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def ldap_group_search_scope
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.ldap_group_search_scope.value.to_s
   end
 
-  def ldap_group_search_scope=(value)
-    api_instance = do_login()
+  def ldap_group_search_scope=(_value)
+    api_instance = do_login
 
     configurations = {
       "ldap_group_search_scope": resource[:ldap_group_search_scope]
@@ -410,13 +410,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def ldap_group_admin_dn
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.ldap_group_admin_dn.value
   end
 
-  def ldap_group_admin_dn=(value)
-    api_instance = do_login()
+  def ldap_group_admin_dn=(_value)
+    api_instance = do_login
 
     configurations = {
       "ldap_group_admin_dn": resource[:ldap_group_admin_dn]
@@ -430,13 +430,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def project_creation_restriction
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.project_creation_restriction.value
   end
 
-  def project_creation_restriction=(value)
-    api_instance = do_login()
+  def project_creation_restriction=(_value)
+    api_instance = do_login
 
     configurations = {
       "project_creation_restriction": resource[:project_creation_restriction]
@@ -450,13 +450,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def read_only
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.read_only.value
   end
 
-  def read_only=(value)
-    api_instance = do_login()
+  def read_only=(_value)
+    api_instance = do_login
 
     configurations = {
       "read_only": resource[:read_only]
@@ -470,13 +470,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def self_registration
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.self_registration.value.to_s
   end
 
-  def self_registration=(value)
-    api_instance = do_login()
+  def self_registration=(_value)
+    api_instance = do_login
 
     configurations = {
       "self_registration": resource[:self_registration]
@@ -490,13 +490,13 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   def token_expiration
-    api_instance = do_login()
+    api_instance = do_login
     config = get_config(api_instance)
     config.token_expiration.value
   end
 
-  def token_expiration=(value)
-    api_instance = do_login()
+  def token_expiration=(_value)
+    api_instance = do_login
 
     configurations = {
       "token_expiration": resource[:token_expiration]
@@ -508,5 +508,4 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
       puts "Exception when calling ProductsApi->configurations_put for token_expiration: #{e}"
     end
   end
-
 end

@@ -1,21 +1,23 @@
+# frozen_string_literal: true
+
 Puppet::Type.newtype(:harbor_user_settings) do
   desc 'Manage Harbor user settings'
 
-  newparam(:name, :namevar => true) do
-    desc "Name of the settings"
+  newparam(:name, namevar: true) do
+    desc 'Name of the settings'
   end
 
   newproperty(:auth_mode) do
-    defaultto "db_auth"
-    newvalues("db_auth", "ldap_auth", "uaa_auth", "oidc_auth")
+    defaultto 'db_auth'
+    newvalues('db_auth', 'ldap_auth', 'uaa_auth', 'oidc_auth')
   end
 
   newproperty(:email_from) do
-    defaultto "admin <sample_admin@mydomain.com>"
+    defaultto 'admin <sample_admin@mydomain.com>'
   end
 
   newproperty(:email_host) do
-    defaultto "smtp.mydomain.com"
+    defaultto 'smtp.mydomain.com'
   end
 
   newproperty(:email_port) do
@@ -26,7 +28,7 @@ Puppet::Type.newtype(:harbor_user_settings) do
   end
 
   newproperty(:email_username) do
-    defaultto "sample_admin@mydomain.com"
+    defaultto 'sample_admin@mydomain.com'
   end
 
   newproperty(:email_ssl) do
@@ -54,7 +56,7 @@ Puppet::Type.newtype(:harbor_user_settings) do
   end
 
   newproperty(:ldap_uid) do
-    defaultto "cn"
+    defaultto 'cn'
   end
 
   newproperty(:ldap_search_dn) do
@@ -65,7 +67,7 @@ Puppet::Type.newtype(:harbor_user_settings) do
   end
 
   newproperty(:ldap_group_attribute_name) do
-    newvalues("cn", "gid")
+    newvalues('cn', 'gid')
   end
 
   newproperty(:ldap_group_base_dn) do
@@ -83,8 +85,8 @@ Puppet::Type.newtype(:harbor_user_settings) do
   end
 
   newproperty(:project_creation_restriction) do
-    defaultto "everyone"
-    newvalues("everyone", "adminonly")
+    defaultto 'everyone'
+    newvalues('everyone', 'adminonly')
   end
 
   newproperty(:read_only) do
