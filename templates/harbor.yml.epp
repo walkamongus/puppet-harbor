@@ -41,6 +41,7 @@
   $registry_custom_ca_bundle,
   $reload_config,
   $skip_reload_env_pattern,
+  $webhook_job_max_rety,
 | -%>
 # Configuration file of Harbor
 
@@ -112,6 +113,9 @@ jobservice:
   # Maximum number of job workers in job service  
   max_job_workers: <%= $max_job_workers %>
 
+notification:
+  webhook_job_max_rety: <%= $webhook_job_max_rety %>
+
 chart:
   # Change the value of absolute_url to enabled can enable absolute url in chart
   absolute_url: <%= absolute_url %>
@@ -120,14 +124,15 @@ chart:
 log:
   # options are debug, info, warning, error, fatal
   level: <%= $log_level %>
-  # Log files are rotated log_rotate_count times before being removed. If count is 0, old versions are removed rather than rotated.
-  rotate_count: <%= $log_rotate_count %>
-  # Log files are rotated only if they grow bigger than log_rotate_size bytes. If size is followed by k, the size is assumed to be in kilobytes. 
-  # If the M is used, the size is in megabytes, and if G is used, the size is in gigabytes. So size 100, size 100k, size 100M and size 100G 
-  # are all valid.
-  rotate_size: <%= $log_rotate_size %>
-  # The directory on your host that store log
-  location: <%= $log_location %>
+  local:
+    # Log files are rotated log_rotate_count times before being removed. If count is 0, old versions are removed rather than rotated.
+    rotate_count: <%= $log_rotate_count %>
+    # Log files are rotated only if they grow bigger than log_rotate_size bytes. If size is followed by k, the size is assumed to be in kilobytes. 
+    # If the M is used, the size is in megabytes, and if G is used, the size is in gigabytes. So size 100, size 100k, size 100M and size 100G 
+    # are all valid.
+    rotate_size: <%= $log_rotate_size %>
+    # The directory on your host that store log
+    location: <%= $log_location %>
 
 #This attribute is for migrator to detect the version of the .cfg file, DO NOT MODIFY!
 _version: <%= $cfg_version %>

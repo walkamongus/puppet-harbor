@@ -217,6 +217,8 @@
 #
 # @param skip_reload_env_pattern
 #
+# @param $webhook_job_max_rety
+#
 class harbor (
   Pattern[/\d+\.\d+\.\d+.*/] $version,
   Pattern[/\d+\.\d+\.\d+.*/] $release,
@@ -298,6 +300,7 @@ class harbor (
   Variant[Stdlib::Absolutepath,String[0,0]] $registry_custom_ca_bundle,
   Variant[Boolean,String[0,0]] $reload_config,
   String $skip_reload_env_pattern,
+  Integer $webhook_job_max_rety,
   Stdlib::Httpurl $download_source = "https://storage.googleapis.com/harbor-releases/release-${release}/harbor-${installer}-installer-v${version}.tgz",
 ){
 
@@ -399,6 +402,7 @@ class harbor (
     registry_custom_ca_bundle        => $registry_custom_ca_bundle,
     reload_config                    => $reload_config,
     skip_reload_env_pattern          => $skip_reload_env_pattern,
+    webhook_job_max_rety             => $webhook_job_max_rety,
   }
   contain 'harbor::config'
 
