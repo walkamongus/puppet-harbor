@@ -113,7 +113,7 @@ jobservice:
   # Maximum number of job workers in job service  
   max_job_workers: <%= $max_job_workers %>
 
-<% if ersioncmp($cfg_version, '1.8.0') >= 0 { -%>
+<% if ersioncmp($cfg_version, '1.9.0') >= 0 { -%>
 notification:
   webhook_job_max_rety: <%= $webhook_job_max_rety %>
 <% } %>
@@ -127,7 +127,7 @@ log:
   # options are debug, info, warning, error, fatal
   level: <%= $log_level %>
 
-<% if ersioncmp($cfg_version, '1.8.0') >= 0 { -%>
+<% if ersioncmp($cfg_version, '1.9.0') >= 0 { -%>
   local:
     # Log files are rotated log_rotate_count times before being removed. If count is 0, old versions are removed rather than rotated.
     rotate_count: <%= $log_rotate_count %>
