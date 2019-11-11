@@ -74,7 +74,7 @@ class harbor::config (
   $registry_custom_ca_bundle,
   $reload_config,
   $skip_reload_env_pattern,
-  $webhook_job_max_rety,
+  $webhook_job_max_retry,
 ){
 
   assert_private()
@@ -127,7 +127,7 @@ class harbor::config (
         'registry_custom_ca_bundle'        => $registry_custom_ca_bundle,
         'reload_config'                    => $reload_config,
         'skip_reload_env_pattern'          => $skip_reload_env_pattern,
-        'webhook_job_max_rety'             => $webhook_job_max_rety,
+        'webhook_job_max_retry'             => $webhook_job_max_retry,
       }),
     }
   } elsif versioncmp($cfg_version, '1.8.0') >= 0 {
