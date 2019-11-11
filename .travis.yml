@@ -1,5 +1,5 @@
 ---
-dist: trusty
+dist: xenial
 language: ruby
 cache: bundler
 before_install:
@@ -35,7 +35,7 @@ matrix:
       rvm: 2.5.3
       stage: spec
     -
-      env: DEPLOY_TO_FORGE=no
+      env: DEPLOY_TO_FORGE=yes
       stage: deploy
 branches:
   only:
@@ -43,12 +43,3 @@ branches:
     - /^v\d/
 notifications:
   email: false
-deploy:
-  provider: puppetforge
-  user: puppet
-  password:
-    secure: ""
-  on:
-    tags: true
-    all_branches: true
-    condition: "$DEPLOY_TO_FORGE = yes"

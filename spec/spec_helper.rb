@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require 'puppetlabs_spec_helper/module_spec_helper'
 require 'rspec-puppet-facts'
 
@@ -9,12 +7,12 @@ include RspecPuppetFacts
 
 default_facts = {
   puppetversion: Puppet.version,
-  facterversion: Facter.version
+  facterversion: Facter.version,
 }
 
 default_fact_files = [
   File.expand_path(File.join(File.dirname(__FILE__), 'default_facts.yml')),
-  File.expand_path(File.join(File.dirname(__FILE__), 'default_module_facts.yml'))
+  File.expand_path(File.join(File.dirname(__FILE__), 'default_module_facts.yml')),
 ]
 
 default_fact_files.each do |f|
@@ -25,6 +23,11 @@ default_fact_files.each do |f|
   rescue => e
     RSpec.configuration.reporter.message "WARNING: Unable to load #{f}: #{e}"
   end
+end
+
+# read default_facts and merge them over what is provided by facterdb
+default_facts.each do |fact, value|
+  add_custom_fact fact, value
 end
 
 RSpec.configure do |c|
@@ -39,6 +42,8 @@ RSpec.configure do |c|
   end
 end
 
+# Ensures that a module is defined
+# @param module_name Name of the module
 def ensure_module_defined(module_name)
   module_name.split('::').reduce(Object) do |last_module, next_module|
     last_module.const_set(next_module, Module.new) unless last_module.const_defined?(next_module, false)
