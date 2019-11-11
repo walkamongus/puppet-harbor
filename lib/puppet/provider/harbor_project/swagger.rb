@@ -75,7 +75,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     api_instance = do_login
 
     opts = {
-      name: resource[:name]
+      name: resource[:name],
     }
 
     begin
@@ -138,7 +138,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     api_instance = do_login
 
     opts = {
-      name: project_name
+      name: project_name,
     }
 
     project = api_instance.projects_get(opts)
@@ -184,7 +184,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     api_instance = do_login
 
     opts = {
-      entityname: member
+      entityname: member,
     }
     result = api_instance.projects_project_id_members_get(id, opts)
     mid = result[0].id
@@ -195,7 +195,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     api_instance = do_login
 
     opts = {
-      name: resource[:name]
+      name: resource[:name],
     }
 
     begin

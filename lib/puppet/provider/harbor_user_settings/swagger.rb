@@ -39,7 +39,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "auth_mode": resource[:auth_mode]
+      "auth_mode": resource[:auth_mode],
     }
 
     begin
@@ -59,7 +59,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "email_from": resource[:email_from]
+      "email_from": resource[:email_from],
     }
 
     begin
@@ -79,7 +79,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "email_host": resource[:email_host]
+      "email_host": resource[:email_host],
     }
 
     begin
@@ -99,7 +99,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "email_port": resource[:email_port]
+      "email_port": resource[:email_port],
     }
 
     begin
@@ -119,7 +119,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "email_identity": resource[:email_identity]
+      "email_identity": resource[:email_identity],
     }
 
     begin
@@ -139,7 +139,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "email_username": resource[:email_username]
+      "email_username": resource[:email_username],
     }
 
     begin
@@ -159,7 +159,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "email_ssl": resource[:email_ssl]
+      "email_ssl": resource[:email_ssl],
     }
 
     begin
@@ -179,7 +179,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "email_insecure": resource[:email_insecure]
+      "email_insecure": resource[:email_insecure],
     }
 
     begin
@@ -199,7 +199,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "ldap_url": resource[:ldap_url]
+      "ldap_url": resource[:ldap_url],
     }
 
     begin
@@ -219,7 +219,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "ldap_base_dn": resource[:ldap_base_dn]
+      "ldap_base_dn": resource[:ldap_base_dn],
     }
 
     begin
@@ -239,7 +239,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "ldap_filter": resource[:ldap_filter]
+      "ldap_filter": resource[:ldap_filter],
     }
 
     begin
@@ -259,7 +259,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "ldap_scope": resource[:ldap_scope]
+      "ldap_scope": resource[:ldap_scope],
     }
 
     begin
@@ -279,7 +279,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "ldap_uid": resource[:ldap_uid]
+      "ldap_uid": resource[:ldap_uid],
     }
 
     begin
@@ -299,7 +299,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "ldap_search_dn": resource[:ldap_search_dn]
+      "ldap_search_dn": resource[:ldap_search_dn],
     }
 
     begin
@@ -319,7 +319,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "ldap_timeout": resource[:ldap_timeout]
+      "ldap_timeout": resource[:ldap_timeout],
     }
 
     begin
@@ -339,7 +339,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "ldap_group_attribute_name": resource[:ldap_group_attribute_name]
+      "ldap_group_attribute_name": resource[:ldap_group_attribute_name],
     }
 
     begin
@@ -359,7 +359,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "ldap_group_base_dn": resource[:ldap_group_base_dn]
+      "ldap_group_base_dn": resource[:ldap_group_base_dn],
     }
 
     begin
@@ -379,7 +379,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "ldap_group_search_filter": resource[:ldap_group_search_filter]
+      "ldap_group_search_filter": resource[:ldap_group_search_filter],
     }
 
     begin
@@ -399,7 +399,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "ldap_group_search_scope": resource[:ldap_group_search_scope]
+      "ldap_group_search_scope": resource[:ldap_group_search_scope],
     }
 
     begin
@@ -419,7 +419,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "ldap_group_admin_dn": resource[:ldap_group_admin_dn]
+      "ldap_group_admin_dn": resource[:ldap_group_admin_dn],
     }
 
     begin
@@ -439,7 +439,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "project_creation_restriction": resource[:project_creation_restriction]
+      "project_creation_restriction": resource[:project_creation_restriction],
     }
 
     begin
@@ -459,7 +459,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "read_only": resource[:read_only]
+      "read_only": resource[:read_only],
     }
 
     begin
@@ -479,7 +479,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "self_registration": resource[:self_registration]
+      "self_registration": resource[:self_registration],
     }
 
     begin
@@ -499,7 +499,7 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     api_instance = do_login
 
     configurations = {
-      "token_expiration": resource[:token_expiration]
+      "token_expiration": resource[:token_expiration],
     }
 
     begin
