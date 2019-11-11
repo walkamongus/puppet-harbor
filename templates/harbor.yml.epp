@@ -22,6 +22,8 @@
   $db_password,
   $db_port,
   $db_user,
+  $db_max_idle_connections,
+  $db_max_open_conns,
   $external_redis,
   $redis_host,
   $redis_port,
@@ -67,7 +69,7 @@ https:
 <% if ! empty($external_url) { -%>
 # Uncomment external_url if you want to enable external proxy
 # And when it enabled the hostname will no longer used
-# external_url: <%= $external_url %>
+external_url: <%= $external_url %>
 <% } -%>
 
 # The initial password of Harbor admin
@@ -79,6 +81,13 @@ harbor_admin_password: <%= $harbor_admin_password %>
 database:
   # The password for the root user of Harbor DB. Change this before any production use.
   password: <%= $db_password %>
+<% if versioncmp($cfg_version, '1.9.0') >= 0 { -%>
+  # The maximum number of connections in the idle connection pool. If it <=0, no idle connections are retained.
+  max_idle_conns: <%= $db_max_idle_connections %>
+  # The maximum number of open connections to the database. If it <= 0, then there is no limit on the number of open connections.
+  # Note: the default number of connections is 100 for postgres.
+  max_open_conns: <%= $db_max_open_conns %>
+<% } %>
 
 # The default data volume
 data_volume: <%= $data_volume %>
@@ -103,11 +112,13 @@ clair:
   # The interval of clair updaters, the unit is hour, set to 0 to disable the updaters.
   updaters_interval: <%= $clair_updaters_interval %>
 
+<% if versioncmp($cfg_version, '1.9.0') < 0 { -%>
   # Config http proxy for Clair, e.g. http://my.proxy.com:3128
   # Clair doesn't need to connect to harbor internal components via http proxy.
   http_proxy: <%= $http_proxy %>
   https_proxy: <%= $https_proxy %>
   no_proxy: <%= $no_proxy %>
+<% } %>
 
 jobservice:
   # Maximum number of job workers in job service  
@@ -201,4 +212,23 @@ external_redis:
 # Uncomment uaa for trusting the certificate of uaa instance that is hosted via self-signed cert.
 uaa:
   ca_file: <%= $uaa_ca_cert %>
+<% } %>
+
+<% if versioncmp($cfg_version, '1.9.0') >= 0 { -%>
+# Global proxy
+# Config http proxy for components, e.g. http://my.proxy.com:3128
+# Components doesn't need to connect to each others via http proxy.
+# Remove component from `components` array if want disable proxy
+# for it. If you want use proxy for replication, MUST enable proxy
+# for core and jobservice, and set `http_proxy` and `https_proxy`.
+# Add domain to the `no_proxy` field, when you want disable proxy
+# for some special registry.
+proxy:
+  http_proxy: <%= $http_proxy %>
+  https_proxy: <%= $https_proxy %>
+  no_proxy: <%= $no_proxy %>
+  components:
+    - core
+    - jobservice
+    - clair
 <% } %>

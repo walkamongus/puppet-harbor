@@ -50,6 +50,8 @@ class harbor::config (
   $db_password,
   $db_port,
   $db_user,
+  $db_max_idle_connections,
+  $db_max_open_conns,
   $external_redis,
   $redis_host,
   $redis_port,
@@ -108,6 +110,8 @@ class harbor::config (
         'db_password'                      => $db_password,
         'db_port'                          => $db_port,
         'db_user'                          => $db_user,
+        'db_max_idle_connections'          => $db_max_idle_connections,
+        'db_max_open_conns'                => $db_max_open_conns,
         'external_redis'                   => $external_redis,
         'redis_host'                       => $redis_host,
         'redis_port'                       => $redis_port,
@@ -127,7 +131,7 @@ class harbor::config (
         'registry_custom_ca_bundle'        => $registry_custom_ca_bundle,
         'reload_config'                    => $reload_config,
         'skip_reload_env_pattern'          => $skip_reload_env_pattern,
-        'webhook_job_max_retry'             => $webhook_job_max_retry,
+        'webhook_job_max_retry'            => $webhook_job_max_retry,
       }),
     }
   } elsif versioncmp($cfg_version, '1.8.0') >= 0 {

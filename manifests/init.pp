@@ -89,7 +89,7 @@
 #  Defaults to None
 #
 # @param no_proxy
-#  Defaults to '127.0.0.1,localhost,ui,registry'
+#  Defaults to None
 #
 # @param data_volume
 #  Defaults to '/data'
@@ -160,6 +160,12 @@
 #
 # @param db_user
 #   Defaults to postgres
+#
+# @param db_max_idle_connections
+#   Defaults to 50
+#
+# @param db_max_open_conns
+#   Defaults to 100
 #
 # @param external_redis
 #   Defaults to false
@@ -278,6 +284,8 @@ class harbor (
   String $db_password,
   Stdlib::Port $db_port,
   String $db_user,
+  Integer $db_max_idle_connections,
+  Integer $db_max_open_conns,
   Stdlib::Host $redis_host,
   Stdlib::Port $redis_port,
   String $redis_password,
@@ -313,6 +321,13 @@ class harbor (
     $_proxy_server = undef
   }
 
+  $_default_no_proxy = '127.0.0.1,localhost,.local,.internal,log,db,redis,nginx,core,portal,postgresql,jobservice,registry,registryctl,clair'
+  if ! empty($no_proxy) {
+    $_no_proxy = "${_default_no_proxy},${no_proxy}"
+  } else {
+    $_no_proxy = $_default_no_proxy
+  }
+
   $_versions    = split($version, '\.')
   $_cfg_version = "${_versions[0]}.${_versions[1]}.0"
 
@@ -345,7 +360,7 @@ class harbor (
     log_location                     => $log_location,
     http_proxy                       => $http_proxy,
     https_proxy                      => $https_proxy,
-    no_proxy                         => $no_proxy,
+    no_proxy                         => $_no_proxy,
     data_volume                      => $data_volume,
     email_identity                   => $email_identity,
     email_server                     => $email_server,
@@ -378,6 +393,8 @@ class harbor (
     db_password                      => $db_password,
     db_port                          => $db_port,
     db_user                          => $db_user,
+    db_max_idle_connections          => $db_max_idle_connections,
+    db_max_open_conns                => $db_max_open_conns,
     external_redis                   => $external_redis,
     redis_host                       => $redis_host,
     redis_port                       => $redis_port,

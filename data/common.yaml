@@ -1,6 +1,6 @@
 ---
-harbor::version: '1.7.5'
-harbor::release: '1.7.0'
+harbor::version: '1.9.2'
+harbor::release: '1.9.0'
 harbor::checksum: '6da2f6ff3be598b5c657a9b204bda8af'
 harbor::installer: 'offline'
 harbor::with_notary: false
@@ -23,7 +23,7 @@ harbor::log_rotate_size: '200M'
 harbor::log_location: '/var/log/harbor'
 harbor::http_proxy: ''
 harbor::https_proxy: ''
-harbor::no_proxy: '127.0.0.1,localhost,ui,registry'
+harbor::no_proxy: ''
 harbor::data_volume: '/data'
 harbor::email_identity: ''
 harbor::email_server: 'smtp.mydomain.com'
@@ -56,6 +56,8 @@ harbor::db_host: 'postgresql'
 harbor::db_password: 'root123'
 harbor::db_port: 5432
 harbor::db_user: 'postgres'
+harbor::db_max_idle_connections: 50
+harbor::db_max_open_conns: 100
 harbor::external_redis: false
 harbor::redis_host: 'redis'
 harbor::redis_port: 6379
