@@ -1,5 +1,15 @@
 # Change Log
 
+## [v2.0.0](https://github.com/walkamongus/puppet-harbor/tree/v2.0.0) (2019-11-11)
+[Full Changelog](https://github.com/walkamongus/puppet-harbor/compare/v1.0.0...v2.0.0)
+
+**Merged pull requests:**
+
+- added changes for 1.9 upgrade [\#5](https://github.com/walkamongus/puppet-harbor/pull/5) ([dereckmartin](https://github.com/dereckmartin))
+- Feature/rubocop updates [\#4](https://github.com/walkamongus/puppet-harbor/pull/4) ([walkamongus](https://github.com/walkamongus))
+- Feature/types and providers [\#3](https://github.com/walkamongus/puppet-harbor/pull/3) ([bt-lemery](https://github.com/bt-lemery))
+- Feature/yml config [\#2](https://github.com/walkamongus/puppet-harbor/pull/2) ([bt-lemery](https://github.com/bt-lemery))
+
 ## [v1.0.0](https://github.com/walkamongus/puppet-harbor/tree/v1.0.0) (2019-05-23)
 [Full Changelog](https://github.com/walkamongus/puppet-harbor/compare/v0.1.0...v1.0.0)
 
