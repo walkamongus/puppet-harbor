@@ -1,5 +1,12 @@
 # Change Log
 
+## [v2.1.0](https://github.com/walkamongus/puppet-harbor/tree/v2.1.0) (2019-11-15)
+[Full Changelog](https://github.com/walkamongus/puppet-harbor/compare/v2.0.0...v2.1.0)
+
+**Merged pull requests:**
+
+- Upgrade prepare fix [\#6](https://github.com/walkamongus/puppet-harbor/pull/6) ([dereckmartin](https://github.com/dereckmartin))
+
 ## [v2.0.0](https://github.com/walkamongus/puppet-harbor/tree/v2.0.0) (2019-11-11)
 [Full Changelog](https://github.com/walkamongus/puppet-harbor/compare/v1.0.0...v2.0.0)
 
