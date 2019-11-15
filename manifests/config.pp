@@ -141,7 +141,7 @@ class harbor::config (
 
     exec { 'migrate_cfg':
       cwd         => '/opt/harbor',
-      command     => "docker run -it --rm -v harbor.yml:/harbor-migration/harbor-cfg/harbor.yml -v harbor.yml:/harbor-migration/harbor-cfg-out/harbor.yml goharbor/harbor-migrator:${cfg_version} --cfg up",
+      command     => "/usr/bin/docker run -it --rm -v harbor.yml:/harbor-migration/harbor-cfg/harbor.yml -v harbor.yml:/harbor-migration/harbor-cfg-out/harbor.yml goharbor/harbor-migrator:${cfg_version} --cfg up",
       logoutput   => true,
       refreshonly => true,
     }
