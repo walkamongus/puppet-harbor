@@ -138,6 +138,13 @@ class harbor::config (
       mode    => '0644',
       content => epp('harbor/harbor.yml.epp', $_base_config + $_new_config),
     }
+
+    exec { 'migrate_cfg':
+      cwd         => '/opt/harbor',
+      command     => "/usr/bin/docker run -it --rm -v harbor.yml:/harbor-migration/harbor-cfg/harbor.yml -v harbor.yml:/harbor-migration/harbor-cfg-out/harbor.yml goharbor/harbor-migrator:${cfg_version} --cfg up",
+      logoutput   => true,
+      refreshonly => true,
+    }
   } elsif versioncmp($cfg_version, '1.8.0') >= 0 {
     $_new_config = {
       'external_url'                     => $external_url,
