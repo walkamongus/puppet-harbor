@@ -61,11 +61,11 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
     api_instance
   end
 
-  def get_label_id_by_name(name)
+  def get_label_id_by_name(label_name)
     api_instance = do_login
 
     opts = {
-      name: resource[:name],
+      name: label_name,
     }
 
     begin
@@ -76,7 +76,6 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
 
     label[0].id
   end
-
 
   def exists?
     api_instance = do_login
