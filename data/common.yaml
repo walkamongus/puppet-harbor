@@ -83,3 +83,5 @@ harbor::registry_custom_ca_bundle: ''
 harbor::reload_config: ''
 harbor::skip_reload_env_pattern: ''
 harbor::webhook_job_max_retry: 10
+harbor::backup_enabled: false
+harbor::backup_directory: '/tmp'
