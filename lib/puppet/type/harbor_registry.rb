@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-
 Puppet::Type.newtype(:harbor_registry) do
   desc 'Manage Harbor registry endpoints'
 

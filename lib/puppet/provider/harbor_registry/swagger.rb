@@ -1,35 +1,5 @@
 # frozen_string_literal: true
 
-Puppet::Type.newtype(:harbor_registry) do
-  desc 'Manage Harbor registry endpoints'
-
-  ensurable
-
-  newparam(:name, namevar: true) do
-    desc 'Name of the Registry'
-  end
-
-  newproperty(:description) do
-  end
-
-  newproperty(:url) do
-  end
-
-  newproperty(:access_key) do
-  end
-
-  newproperty(:access_secret) do
-  end
-
-  newproperty(:insecure) do
-    defaultto :false
-    newvalues(:true, :false)
-  end
-end
-
-[root@us01vlhrbr006 AKA harbor-ny2-lab harbor_registry]# cat swagger.rb
-# frozen_string_literal: true
-
 Puppet::Type.type(:harbor_registry).provide(:swagger) do
   mk_resource_methods
 
@@ -46,7 +16,7 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
         url: registry.url,
         access_key: registry.credential.access_key,
         access_secret: registry.credential.access_secret,
-        insecure: registry.insecure,
+        insecure: registry.insecure.to_s(),
         provider: :swagger,
       )
     end
@@ -117,9 +87,15 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
   def create
     api_instance = do_login
 
-    insecure_bool = cast_insecure_to_bool(resource[:insecure])
+    if resource[:insecure]
+      insecure_bool = cast_insecure_to_bool(resource[:insecure].to_s())
+    end
 
-    nr = SwaggerClient::Registry.new(name: resource[:name], url: resource[:url], insecure: insecure_bool, type: 'harbor', credential: { access_key: resource[:access_key], access_secret: resource[:access_secret] })
+    if insecure_bool and (insecure_bool.class == TrueClass or insecure_bool.class == FalseClass)
+      nr = registry = SwaggerClient::Registry.new(name: resource[:name], url: resource[:url], insecure: insecure_bool, type: 'harbor', credential: { access_key: resource[:access_key], access_secret: resource[:access_secret] })
+    else
+      nr = registry = SwaggerClient::Registry.new(name: resource[:name], url: resource[:url], type: 'harbor', credential: { access_key: resource[:access_key], access_secret: resource[:access_secret] })
+    end
 
     begin
       api_instance.registries_post(nr)
@@ -128,86 +104,21 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
     end
   end
 
-  def cast_insecure_to_bool(insecure)
-    if insecure == "true"
-      insecure_bool = insecure == insecure
+  def cast_insecure_to_bool(foo)
+    if foo == "true"
+      return 'true' == 'true'
     end
 
-    if insecure == "false"
-      insecure_bool = insecure != insecure
+    if foo == "false"
+      return 'false' != 'false'
     end
-
-    insecure_bool
   end
 
-  def url
+  def get_registry_id_by_name(registry_name)
     api_instance = do_login
 
     opts = {
-      name: resource[:name],
-    }
-
-    begin
-      registry = api_instance.registries_get(opts)
-    rescue SwaggerClient::ApiError => e
-      puts "Exception when calling ProductsApi->registries_get: #{e}"
-    end
-
-    registry[0].url
-  end
-
-  def url=(_value)
-    api_instance = do_login
-    id = get_registry_id_by_name(resource[:name])
-    repo_target = {
-      url: resource[:url],
-    }
-
-    begin
-      api_instance.registries_id_put(id, repo_target)
-    rescue SwaggerClient::ApiError => e
-      puts "Exception when calling ProductsApi->registries_id_put: #{e}"
-    end
-  end
-
-  def access_secret
-    return '*****'
-  end
-
-  def insecure
-    api_instance = do_login
-
-    opts = {
-      name: resource[:name],
-    }
-
-    begin
-      registry = api_instance.registries_get(opts)
-    rescue SwaggerClient::ApiError => e
-      puts "Exception when calling ProductsApi->registries_get: #{e}"
-    end
-
-    registry[0].insecure
-  end
-
-  def insecure=(_value)
-    api_instance = do_login
-    id = get_registry_id_by_name(resource[:name])
-
-    insecure_bool = cast_insecure_to_bool(resource[:insecure])
-
-    repo_target = {
-      insecure: insecure_bool,
-    }
-
-    api_instance.registries_id_put(id, repo_target)
-  end
-
-  def get_registry_id_by_name(name)
-    api_instance = do_login
-
-    opts = {
-      name: name,
+      name: registry_name,
     }
 
     begin
@@ -218,7 +129,6 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
 
     registry[0].id
   end
-
 
   def destroy
     api_instance = do_login
