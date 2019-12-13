@@ -56,7 +56,6 @@ class harbor::config (
   $redis_host,
   $redis_port,
   $redis_password,
-  $redis_db_index,
   $redis_registry_db_index,
   $redis_jobservice_db_index,
   $redis_chartmuseum_db_index,
@@ -81,7 +80,7 @@ class harbor::config (
 
   assert_private()
 
-  $_base_config = {
+  $_config = {
     'cfg_version'                      => $cfg_version,
     'hostname'                         => $hostname,
     'ui_url_protocol'                  => $ui_url_protocol,
@@ -116,92 +115,32 @@ class harbor::config (
     'registry_custom_ca_bundle'        => $registry_custom_ca_bundle,
     'reload_config'                    => $reload_config,
     'skip_reload_env_pattern'          => $skip_reload_env_pattern,
+    'external_url'                     => $external_url,
+    'log_level'                        => $log_level,
+    'log_location'                     => $log_location,
+    'data_volume'                      => $data_volume,
+    'db_max_idle_connections'          => $db_max_idle_connections,
+    'db_max_open_conns'                => $db_max_open_conns,
+    'external_redis'                   => $external_redis,
+    'redis_registry_db_index'          => $redis_registry_db_index,
+    'redis_jobservice_db_index'        => $redis_jobservice_db_index,
+    'redis_chartmuseum_db_index'       => $redis_chartmuseum_db_index,
+    'redis_clair_db_index'             => $redis_clair_db_index,
+    'webhook_job_max_retry'            => $webhook_job_max_retry,
   }
 
-  if versioncmp($cfg_version, '1.9.0') >= 0 {
-    $_new_config = {
-      'external_url'                     => $external_url,
-      'log_level'                        => $log_level,
-      'log_location'                     => $log_location,
-      'data_volume'                      => $data_volume,
-      'db_max_idle_connections'          => $db_max_idle_connections,
-      'db_max_open_conns'                => $db_max_open_conns,
-      'external_redis'                   => $external_redis,
-      'redis_registry_db_index'          => $redis_registry_db_index,
-      'redis_jobservice_db_index'        => $redis_jobservice_db_index,
-      'redis_chartmuseum_db_index'       => $redis_chartmuseum_db_index,
-      'webhook_job_max_retry'            => $webhook_job_max_retry,
-    }
-    file { '/opt/harbor/harbor.yml':
-      owner   => 'root',
-      group   => 'root',
-      mode    => '0644',
-      content => epp('harbor/harbor.yml.epp', $_base_config + $_new_config),
-    }
-
-    exec { 'migrate_cfg':
-      cwd         => '/opt/harbor',
-      command     => "/usr/bin/docker run -it --rm -v harbor.yml:/harbor-migration/harbor-cfg/harbor.yml -v harbor.yml:/harbor-migration/harbor-cfg-out/harbor.yml goharbor/harbor-migrator:${cfg_version} --cfg up",
-      logoutput   => true,
-      refreshonly => true,
-    }
-  } elsif versioncmp($cfg_version, '1.8.0') >= 0 {
-    $_new_config = {
-      'external_url'                     => $external_url,
-      'log_level'                        => $log_level,
-      'log_location'                     => $log_location,
-      'data_volume'                      => $data_volume,
-      'external_redis'                   => $external_redis,
-      'redis_registry_db_index'          => $redis_registry_db_index,
-      'redis_jobservice_db_index'        => $redis_jobservice_db_index,
-      'redis_chartmuseum_db_index'       => $redis_chartmuseum_db_index,
-    }
-    file { '/opt/harbor/harbor.yml':
-      owner   => 'root',
-      group   => 'root',
-      mode    => '0644',
-      content => epp('harbor/harbor.yml.epp', $_base_config + $_new_config),
-    }
-  } else {
-    $_new_config = {
-      'admiral_url'                      => $admiral_url,
-      'email_identity'                   => $email_identity,
-      'email_server'                     => $email_server,
-      'email_server_port'                => $email_server_port,
-      'email_username'                   => $email_username,
-      'email_password'                   => $email_password,
-      'email_from'                       => $email_from,
-      'email_ssl'                        => $email_ssl,
-      'email_insecure'                   => $email_insecure,
-      'auth_mode'                        => $auth_mode,
-      'ldap_url'                         => $ldap_url,
-      'ldap_searchdn'                    => $ldap_searchdn,
-      'ldap_search_pwd'                  => $ldap_search_pwd,
-      'ldap_basedn'                      => $ldap_basedn,
-      'ldap_filter'                      => $ldap_filter,
-      'ldap_uid'                         => $ldap_uid,
-      'ldap_scope'                       => $ldap_scope,
-      'ldap_timeout'                     => $ldap_timeout,
-      'ldap_verify_cert'                 => $ldap_verify_cert,
-      'ldap_group_basedn'                => $ldap_group_basedn,
-      'ldap_group_filter'                => $ldap_group_filter,
-      'ldap_group_gid'                   => $ldap_group_gid,
-      'ldap_group_scope'                 => $ldap_group_scope,
-      'ldap_group_admin_dn'              => $ldap_group_admin_dn,
-      'self_registration'                => $self_registration,
-      'token_expiration'                 => $token_expiration,
-      'project_creation_restriction'     => $project_creation_restriction,
-      'redis_db_index'                   => $redis_db_index,
-      'uaa_endpoint'                     => $uaa_endpoint,
-      'uaa_clientid'                     => $uaa_clientid,
-      'uaa_clientsecret'                 => $uaa_clientsecret,
-      'uaa_verify_cert'                  => $uaa_verify_cert,
-    }
-    file { '/opt/harbor/harbor.cfg':
-      owner   => 'root',
-      group   => 'root',
-      mode    => '0644',
-      content => epp('harbor/harbor.cfg.epp', $_base_config + $_new_config)
-    }
+  file { '/opt/harbor/harbor.yml':
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    content => epp('harbor/harbor.yml.epp', $_config),
   }
+
+  exec { 'migrate_cfg':
+    cwd         => '/opt/harbor',
+    command     => "/usr/bin/docker run -it --rm -v harbor.yml:/harbor-migration/harbor-cfg/harbor.yml -v harbor.yml:/harbor-migration/harbor-cfg-out/harbor.yml goharbor/harbor-migrator:${cfg_version} --cfg up",
+    logoutput   => true,
+    refreshonly => true,
+  }
+
 }

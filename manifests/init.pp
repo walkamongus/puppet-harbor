@@ -330,6 +330,9 @@ class harbor (
 
   $_versions    = split($version, '\.')
   $_cfg_version = "${_versions[0]}.${_versions[1]}.0"
+  if versioncmp($_cfg_version, '1.9.0') < 0 {
+    fail('Only Harbor versions >= 1.9.0 are supported by this module')
+  }
 
   class { 'harbor::install':
     installer       => $installer,
@@ -339,8 +342,6 @@ class harbor (
     proxy_server    => $_proxy_server,
   }
   contain 'harbor::install'
-
-  $redis_db_index = "${redis_registry_db_index},${redis_jobservice_db_index},${redis_chartmuseum_db_index}"
 
   class { 'harbor::config':
     cfg_version                      => $_cfg_version,
@@ -399,7 +400,6 @@ class harbor (
     redis_host                       => $redis_host,
     redis_port                       => $redis_port,
     redis_password                   => $redis_password,
-    redis_db_index                   => $redis_db_index,
     redis_registry_db_index          => $redis_registry_db_index,
     redis_jobservice_db_index        => $redis_jobservice_db_index,
     redis_chartmuseum_db_index       => $redis_chartmuseum_db_index,
