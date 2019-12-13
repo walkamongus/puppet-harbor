@@ -31,6 +31,7 @@
   $redis_registry_db_index,
   $redis_jobservice_db_index,
   $redis_chartmuseum_db_index,
+  $redis_clair_db_index,
   $clair_db_host,
   $clair_db_password,
   $clair_db_port,
@@ -192,6 +193,7 @@ external_redis:
   registry_db_index: <%= $redis_registry_db_index %>
   jobservice_db_index: <%= $redis_jobservice_db_index %>
   chartmuseum_db_index: <%= $redis_chartmuseum_db_index %>
+  clair_db_index: <%= $redis_clair_db_index %>
 <% } %>
 
 <% if ! empty($uaa_ca_cert) { -%>

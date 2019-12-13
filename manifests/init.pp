@@ -185,6 +185,7 @@
 #
 # @param redis_chartmuseum_db_index
 #
+# @param redis_clair_db_index
 #
 # @param clair_db_host
 #   Defaults to postgresql
@@ -292,6 +293,7 @@ class harbor (
   Integer $redis_registry_db_index,
   Integer $redis_jobservice_db_index,
   Integer $redis_chartmuseum_db_index,
+  Integer $redis_clair_db_index,
   Stdlib::Host $clair_db_host,
   String $clair_db_password,
   Stdlib::Port $clair_db_port,
@@ -403,6 +405,7 @@ class harbor (
     redis_registry_db_index          => $redis_registry_db_index,
     redis_jobservice_db_index        => $redis_jobservice_db_index,
     redis_chartmuseum_db_index       => $redis_chartmuseum_db_index,
+    redis_clair_db_index             => $redis_clair_db_index,
     clair_db_host                    => $clair_db_host,
     clair_db_password                => $clair_db_password,
     clair_db_port                    => $clair_db_port,

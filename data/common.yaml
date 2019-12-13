@@ -10,14 +10,14 @@ harbor::harbor_ha: false
 harbor::hostname: "%{facts.fqdn}"
 harbor::ui_url_protocol: 'http'
 harbor::max_job_workers: 10
-harbor::absolute_url: disabled
+harbor::absolute_url: 'disabled'
 harbor::customize_crt: 'on'
 harbor::ssl_cert: '/data/cert/server.crt'
 harbor::ssl_cert_key: '/data/cert/server.key'
 harbor::secretkey_path: '/data'
 harbor::admiral_url: 'NA'
 harbor::external_url: ''
-harbor::log_level: info
+harbor::log_level: 'info'
 harbor::log_rotate_count: 50
 harbor::log_rotate_size: '200M'
 harbor::log_location: '/var/log/harbor'
@@ -65,6 +65,7 @@ harbor::redis_password: ''
 harbor::redis_registry_db_index: 1
 harbor::redis_jobservice_db_index: 2
 harbor::redis_chartmuseum_db_index: 3
+harbor::redis_clair_db_index: 4
 harbor::clair_db_host: 'postgresql'
 harbor::clair_db_password: 'root123'
 harbor::clair_db_port: 5432

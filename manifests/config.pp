@@ -59,6 +59,7 @@ class harbor::config (
   $redis_registry_db_index,
   $redis_jobservice_db_index,
   $redis_chartmuseum_db_index,
+  $redis_clair_db_index,
   $clair_db_host,
   $clair_db_password,
   $clair_db_port,
