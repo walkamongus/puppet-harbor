@@ -185,6 +185,7 @@
 #
 # @param redis_chartmuseum_db_index
 #
+# @param redis_clair_db_index
 #
 # @param clair_db_host
 #   Defaults to postgresql
@@ -223,7 +224,15 @@
 #
 # @param skip_reload_env_pattern
 #
-# @param $webhook_job_max_retry
+# @param webhook_job_max_retry
+#
+# @param backup_enabled
+#   Specifies whether to create a backup tar file of the Harbor database if an upgrade is detected
+#   Defaults to false
+#
+# @param backup_directory
+#   Specifies the directory in which to store Harbor backup files
+#   Defaults to '/tmp'
 #
 class harbor (
   Pattern[/\d+\.\d+\.\d+.*/] $version,
@@ -292,6 +301,7 @@ class harbor (
   Integer $redis_registry_db_index,
   Integer $redis_jobservice_db_index,
   Integer $redis_chartmuseum_db_index,
+  Integer $redis_clair_db_index,
   Stdlib::Host $clair_db_host,
   String $clair_db_password,
   Stdlib::Port $clair_db_port,
@@ -309,6 +319,8 @@ class harbor (
   Variant[Boolean,String[0,0]] $reload_config,
   String $skip_reload_env_pattern,
   Integer $webhook_job_max_retry,
+  Boolean $backup_enabled,
+  Stdlib::Absolutepath $backup_directory,
   Stdlib::Httpurl $download_source = "https://storage.googleapis.com/harbor-releases/release-${release}/harbor-${installer}-installer-v${version}.tgz",
 ){
 
@@ -330,6 +342,24 @@ class harbor (
 
   $_versions    = split($version, '\.')
   $_cfg_version = "${_versions[0]}.${_versions[1]}.0"
+  if versioncmp($_cfg_version, '1.9.0') < 0 {
+    fail('Only Harbor versions >= 1.9.0 are supported by this module')
+  }
+
+  if $backup_enabled {
+    if !empty($facts['harbor_systeminfo']['harbor_version']) {
+      $_running_version = $facts['harbor_systeminfo']['harbor_version'].match(/^v(\d+\.\d+\.\d+)/)[1]
+      if versioncmp($version, $_running_version) > 0 {
+        class { 'harbor::backup':
+          version        => $_running_version,
+          data_volume    => $data_volume,
+          back_directory => $backup_directory,
+          before         => Class['harbor::install'],
+        }
+        contain 'harbor::backup'
+      }
+    }
+  }
 
   class { 'harbor::install':
     installer       => $installer,
@@ -339,8 +369,6 @@ class harbor (
     proxy_server    => $_proxy_server,
   }
   contain 'harbor::install'
-
-  $redis_db_index = "${redis_registry_db_index},${redis_jobservice_db_index},${redis_chartmuseum_db_index}"
 
   class { 'harbor::config':
     cfg_version                      => $_cfg_version,
@@ -399,10 +427,10 @@ class harbor (
     redis_host                       => $redis_host,
     redis_port                       => $redis_port,
     redis_password                   => $redis_password,
-    redis_db_index                   => $redis_db_index,
     redis_registry_db_index          => $redis_registry_db_index,
     redis_jobservice_db_index        => $redis_jobservice_db_index,
     redis_chartmuseum_db_index       => $redis_chartmuseum_db_index,
+    redis_clair_db_index             => $redis_clair_db_index,
     clair_db_host                    => $clair_db_host,
     clair_db_password                => $clair_db_password,
     clair_db_port                    => $clair_db_port,

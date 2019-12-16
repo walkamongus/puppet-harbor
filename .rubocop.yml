@@ -20,7 +20,6 @@ AllCops:
   - "**/Guardfile"
 Lint/HandleExceptions:
   Description: Don't suppress exception.
-  AllowComments: true
   Enabled: false
 Metrics/LineLength:
   Description: People have wide screens, use them.
