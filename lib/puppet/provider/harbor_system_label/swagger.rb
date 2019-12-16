@@ -77,6 +77,60 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
     label[0].id
   end
 
+  def name=(_value)
+    api_instance = do_login
+
+    id = get_label_id_by_name(resource[:name])
+
+    label = {
+      "name": resource[:name],
+      "description": resource[:description],
+      "color": resource[:color],
+    }
+
+    begin
+      api_instance.labels_id_put(id, label)
+    rescue SwaggerClient::ApiError => e
+      puts "Exception when calling ProductsApi->labels_id_put for color: #{e}"
+    end
+  end
+
+  def description=(_value)
+    api_instance = do_login
+
+    id = get_label_id_by_name(resource[:name])
+
+    label = {
+      "name": resource[:name],
+      "description": resource[:description],
+      "color": resource[:color],
+    }
+
+    begin
+      api_instance.labels_id_put(id, label)
+    rescue SwaggerClient::ApiError => e
+      puts "Exception when calling ProductsApi->labels_id_put for color: #{e}"
+    end
+  end
+
+  def color=(_value)
+    api_instance = do_login
+
+    id = get_label_id_by_name(resource[:name])
+
+    label = {
+      "name": resource[:name],
+      "description": resource[:description],
+      "color": resource[:color],
+    }
+
+    begin
+      api_instance.labels_id_put(id, label)
+    rescue SwaggerClient::ApiError => e
+      puts "Exception when calling ProductsApi->labels_id_put for color: #{e}"
+    end
+  end
+
   def exists?
     api_instance = do_login
 
