@@ -1,5 +1,10 @@
 # Change Log
 
+## [v3.0.0](https://github.com/walkamongus/puppet-harbor/tree/v3.0.0) (2019-12-13)
+[Full Changelog](https://github.com/walkamongus/puppet-harbor/compare/v2.1.0...v3.0.0)
+
+**NOTE** Version 3.0.0 Drops support for Harbor versions 1.8.X and below.
+
 ## [v2.1.0](https://github.com/walkamongus/puppet-harbor/tree/v2.1.0) (2019-11-15)
 [Full Changelog](https://github.com/walkamongus/puppet-harbor/compare/v2.0.0...v2.1.0)
 

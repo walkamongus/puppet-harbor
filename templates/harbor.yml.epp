@@ -31,6 +31,7 @@
   $redis_registry_db_index,
   $redis_jobservice_db_index,
   $redis_chartmuseum_db_index,
+  $redis_clair_db_index,
   $clair_db_host,
   $clair_db_password,
   $clair_db_port,
@@ -59,11 +60,11 @@ http:
 <% if $ui_url_protocol == 'https' { -%>
 # https related config
 https:
- # https port for harbor, default is 443
- port: 443
- # The path of cert and key files for nginx
- certificate: <%= $ssl_cert %>
- private_key: <%= $ssl_cert_key %>
+  # https port for harbor, default is 443
+  port: 443
+  # The path of cert and key files for nginx
+  certificate: <%= $ssl_cert %>
+  private_key: <%= $ssl_cert_key %>
 <% } %>
 
 <% if ! empty($external_url) { -%>
@@ -81,13 +82,11 @@ harbor_admin_password: <%= $harbor_admin_password %>
 database:
   # The password for the root user of Harbor DB. Change this before any production use.
   password: <%= $db_password %>
-<% if versioncmp($cfg_version, '1.9.0') >= 0 { -%>
   # The maximum number of connections in the idle connection pool. If it <=0, no idle connections are retained.
   max_idle_conns: <%= $db_max_idle_connections %>
   # The maximum number of open connections to the database. If it <= 0, then there is no limit on the number of open connections.
   # Note: the default number of connections is 100 for postgres.
   max_open_conns: <%= $db_max_open_conns %>
-<% } %>
 
 # The default data volume
 data_volume: <%= $data_volume %>
@@ -112,22 +111,12 @@ clair:
   # The interval of clair updaters, the unit is hour, set to 0 to disable the updaters.
   updaters_interval: <%= $clair_updaters_interval %>
 
-<% if versioncmp($cfg_version, '1.9.0') < 0 { -%>
-  # Config http proxy for Clair, e.g. http://my.proxy.com:3128
-  # Clair doesn't need to connect to harbor internal components via http proxy.
-  http_proxy: <%= $http_proxy %>
-  https_proxy: <%= $https_proxy %>
-  no_proxy: <%= $no_proxy %>
-<% } %>
-
 jobservice:
   # Maximum number of job workers in job service  
   max_job_workers: <%= $max_job_workers %>
 
-<% if versioncmp($cfg_version, '1.9.0') >= 0 { -%>
 notification:
   webhook_job_max_retry: <%= $webhook_job_max_retry %>
-<% } %>
 
 chart:
   # Change the value of absolute_url to enabled can enable absolute url in chart
@@ -137,8 +126,7 @@ chart:
 log:
   # options are debug, info, warning, error, fatal
   level: <%= $log_level %>
-
-<% if versioncmp($cfg_version, '1.9.0') >= 0 { -%>
+  # configs for logs in local storage
   local:
     # Log files are rotated log_rotate_count times before being removed. If count is 0, old versions are removed rather than rotated.
     rotate_count: <%= $log_rotate_count %>
@@ -148,16 +136,15 @@ log:
     rotate_size: <%= $log_rotate_size %>
     # The directory on your host that store log
     location: <%= $log_location %>
-<% } else { -%>
-  # Log files are rotated log_rotate_count times before being removed. If count is 0, old versions are removed rather than rotated.
-  rotate_count: <%= $log_rotate_count %>
-  # Log files are rotated only if they grow bigger than log_rotate_size bytes. If size is followed by k, the size is assumed to be in kilobytes. 
-  # If the M is used, the size is in megabytes, and if G is used, the size is in gigabytes. So size 100, size 100k, size 100M and size 100G 
-  # are all valid.
-  rotate_size: <%= $log_rotate_size %>
-  # The directory on your host that store log
-  location: <%= $log_location %>
-<% } %>
+
+  # Uncomment following lines to enable external syslog endpoint.
+  # external_endpoint:
+  #   # protocol used to transmit log to external endpoint, options is tcp or udp
+  #   protocol: tcp
+  #   # The host of external endpoint
+  #   host: localhost
+  #   # Port of external endpoint
+  #   port: 5140
 
 #This attribute is for migrator to detect the version of the .cfg file, DO NOT MODIFY!
 _version: <%= $cfg_version %>
@@ -206,6 +193,7 @@ external_redis:
   registry_db_index: <%= $redis_registry_db_index %>
   jobservice_db_index: <%= $redis_jobservice_db_index %>
   chartmuseum_db_index: <%= $redis_chartmuseum_db_index %>
+  clair_db_index: <%= $redis_clair_db_index %>
 <% } %>
 
 <% if ! empty($uaa_ca_cert) { -%>
@@ -214,7 +202,6 @@ uaa:
   ca_file: <%= $uaa_ca_cert %>
 <% } %>
 
-<% if versioncmp($cfg_version, '1.9.0') >= 0 { -%>
 # Global proxy
 # Config http proxy for components, e.g. http://my.proxy.com:3128
 # Components doesn't need to connect to each others via http proxy.
@@ -226,9 +213,9 @@ uaa:
 proxy:
   http_proxy: <%= $http_proxy %>
   https_proxy: <%= $https_proxy %>
+  # no_proxy endpoints will appended to 127.0.0.1,localhost,.local,.internal,log,db,redis,nginx,core,portal,postgresql,jobservice,registry,registryctl,clair,chartmuseum,notary-server
   no_proxy: <%= $no_proxy %>
   components:
     - core
     - jobservice
     - clair
-<% } %>
