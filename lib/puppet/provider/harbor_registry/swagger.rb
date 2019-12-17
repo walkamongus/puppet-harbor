@@ -88,13 +88,13 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
     api_instance = do_login
 
     if resource[:insecure]
-      insecure_bool = cast_insecure_to_bool(resource[:insecure].to_s())
+      insecure_bool = cast_to_bool(resource[:insecure].to_s())
     end
 
     if insecure_bool and (insecure_bool.class == TrueClass or insecure_bool.class == FalseClass)
-      nr = registry = SwaggerClient::Registry.new(name: resource[:name], url: resource[:url], insecure: insecure_bool, type: 'harbor', credential: { access_key: resource[:access_key], access_secret: resource[:access_secret] })
+      nr = registry = SwaggerClient::Registry.new(name: resource[:name], url: resource[:url], insecure: insecure_bool, type: 'harbor')
     else
-      nr = registry = SwaggerClient::Registry.new(name: resource[:name], url: resource[:url], type: 'harbor', credential: { access_key: resource[:access_key], access_secret: resource[:access_secret] })
+      nr = registry = SwaggerClient::Registry.new(name: resource[:name], url: resource[:url], type: 'harbor')
     end
 
     begin
@@ -102,9 +102,30 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
     rescue SwaggerClient::ApiError => e
       puts "Exception when calling ProductsApi->registries_post: #{e}"
     end
+
+    if resource[:set_credential]
+      credential_bool = cast_to_bool(resource[:set_credential].to_s())
+    end
+
+    if credential_bool and (credential_bool.class == TrueClass)
+      id = get_registry_id_by_name(resource[:name])
+      set_registry_credential(id)
+    end
   end
 
-  def cast_insecure_to_bool(foo)
+  def set_registry_credential(id)
+    api_instance = do_login
+
+    repo_target = SwaggerClient::PutRegistry.new(access_key: resource[:access_key], access_secret: resource[:access_secret])
+
+    begin
+      api_instance.registries_id_put(id, repo_target)
+    rescue SwaggerClient::ApiError => e
+      puts "Exception when calling ProductsApi->registries_id_put: #{e}"
+    end
+  end
+
+  def cast_to_bool(foo)
     if foo == "true"
       return 'true' == 'true'
     end
@@ -128,6 +149,50 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
     end
 
     registry[0].id
+  end
+
+  def description=(_value)
+    api_instance = do_login
+
+    id = get_registry_id_by_name(resource[:name])
+
+    repo_target = SwaggerClient::PutRegistry.new(description: resource[:description])
+
+    begin
+      api_instance.registries_id_put(id, repo_target)
+    rescue SwaggerClient::ApiError => e
+      puts "Exception when calling ProductsApi->registries_id_put: #{e}"
+    end
+  end
+
+  def insecure=(_value)
+    api_instance = do_login
+
+    id = get_registry_id_by_name(resource[:name])
+
+    insecure_bool = cast_to_bool(resource[:insecure].to_s())
+
+    repo_target = SwaggerClient::PutRegistry.new(insecure: insecure_bool)
+
+    begin
+      api_instance.registries_id_put(id, repo_target)
+    rescue SwaggerClient::ApiError => e
+      puts "Exception when calling ProductsApi->registries_id_put: #{e}"
+    end
+  end
+
+  def url=(_value)
+    api_instance = do_login
+
+    id = get_registry_id_by_name(resource[:name])
+
+    repo_target = SwaggerClient::PutRegistry.new(url: resource[:url])
+
+    begin
+      api_instance.registries_id_put(id, repo_target)
+    rescue SwaggerClient::ApiError => e
+      puts "Exception when calling ProductsApi->registries_id_put: #{e}"
+    end
   end
 
   def destroy

@@ -14,10 +14,15 @@ Puppet::Type.newtype(:harbor_registry) do
   newproperty(:url) do
   end
 
-  newproperty(:access_key) do
+  newparam(:set_credential) do
+    defaultto :false
+    newvalues(:true, :false)
   end
 
-  newproperty(:access_secret) do
+  newparam(:access_key) do
+  end
+
+  newparam(:access_secret) do
   end
 
   newproperty(:insecure) do
