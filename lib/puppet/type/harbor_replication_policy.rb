@@ -13,10 +13,13 @@ Puppet::Type.newtype(:harbor_replication_policy) do
     defaultto ""
   end
 
-  newproperty(:src_registry) do
+  newparam(:replication_mode) do
+    newvalues(:push, :pull)
   end
 
-  newproperty(:dest_registry) do
+
+  newparam(:remote_registry) do
+    desc 'Name of registry to push to/pull from'
   end
 
   newproperty(:dest_namespace) do
@@ -25,7 +28,10 @@ Puppet::Type.newtype(:harbor_replication_policy) do
   newproperty(:trigger) do
   end
 
-  newproperty(:filters) do
+  newproperty(:filters, :array_matching => :all) do
+    # def insync?(is)
+    #   is.sort == should.sort
+    # end
   end
 
   newproperty(:deletion) do
