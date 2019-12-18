@@ -29,9 +29,6 @@ Puppet::Type.newtype(:harbor_replication_policy) do
   end
 
   newproperty(:filters, :array_matching => :all) do
-    # def insync?(is)
-    #   is.sort == should.sort
-    # end
   end
 
   newproperty(:deletion) do
@@ -43,3 +40,4 @@ Puppet::Type.newtype(:harbor_replication_policy) do
   newproperty(:enabled) do
   end
 end
+

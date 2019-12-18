@@ -15,7 +15,7 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
         src_registry: replication_policy.src_registry.name,
         dest_registry: replication_policy.dest_registry,
         dest_namespace: replication_policy.dest_namespace,
-        trigger: replication_policy.trigger,
+        trigger: trigger_object_to_hash(replication_policy.trigger),
         filters: filter_objects_to_array(replication_policy.filters),
         deletion: replication_policy.deletion,
         override: replication_policy.override,
@@ -39,6 +39,13 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
       filter_arry << { 'type' => fil.type, 'value' => fil.value }
     end
     return filter_arry
+  end
+
+  def self.trigger_object_to_hash(trigger)
+    if trigger.trigger_settings
+      hsh = { 'type' => trigger.type, 'trigger_settings' => { 'cron' => trigger.trigger_settings.cron } }
+    end
+    return hsh
   end
 
   def self.do_login
