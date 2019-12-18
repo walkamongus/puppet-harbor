@@ -6,7 +6,7 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
   def self.instances
     api_instance = do_login
 
-    labels = api_instance.labels_get(scope="g")
+    labels = api_instance.labels_get('g')
 
     labels.map do |label|
       new(
@@ -69,7 +69,7 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
     }
 
     begin
-      label = api_instance.labels_get("g", opts)
+      label = api_instance.labels_get('g', opts)
     rescue SwaggerClient::ApiError => e
       puts "Exception when calling ProductsApi->labels_get: #{e}"
     end
@@ -139,7 +139,7 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
     }
 
     begin
-      result = api_instance.labels_get("g", opts)
+      result = api_instance.labels_get('g', opts)
     rescue SwaggerClient::ApiError => e
       puts "Exception when calling ProductsApi->labels_get: #{e}"
     end
@@ -154,7 +154,7 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
   def create
     api_instance = do_login
 
-    nl = SwaggerClient::Label.new(name: resource[:name], description: resource[:description], color: resource[:color], scope: "g")
+    nl = SwaggerClient::Label.new(name: resource[:name], description: resource[:description], color: resource[:color], scope: 'g')
 
     begin
       api_instance.labels_post(nl)
@@ -174,5 +174,4 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
       puts "Exception when calling ProductsApi->labels_id_delete: #{e}"
     end
   end
-
 end
