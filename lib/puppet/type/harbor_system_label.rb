@@ -10,10 +10,10 @@ Puppet::Type.newtype(:harbor_system_label) do
   end
 
   newproperty(:description) do
-    defaultto ""
+    defaultto ''
   end
 
   newproperty(:color) do
-    defaultto "#FFFFFF"
+    defaultto '#FFFFFF'
   end
 end

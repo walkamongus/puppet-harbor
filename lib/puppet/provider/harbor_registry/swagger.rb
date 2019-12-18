@@ -6,7 +6,7 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
   def self.instances
     api_instance = do_login
 
-    registries = api_instance.registries_get()
+    registries = api_instance.registries_get
 
     registries.map do |registry|
       new(
@@ -16,7 +16,7 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
         url: registry.url,
         access_key: registry.credential.access_key,
         access_secret: registry.credential.access_secret,
-        insecure: registry.insecure.to_s(),
+        insecure: registry.insecure.to_s,
         provider: :swagger,
       )
     end
@@ -88,14 +88,14 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
     api_instance = do_login
 
     if resource[:insecure]
-      insecure_bool = cast_to_bool(resource[:insecure].to_s())
+      insecure_bool = cast_to_bool(resource[:insecure].to_s)
     end
 
-    if insecure_bool and (insecure_bool.class == TrueClass or insecure_bool.class == FalseClass)
-      nr = registry = SwaggerClient::Registry.new(name: resource[:name], url: resource[:url], insecure: insecure_bool, type: 'harbor')
-    else
-      nr = registry = SwaggerClient::Registry.new(name: resource[:name], url: resource[:url], type: 'harbor')
-    end
+    nr = if insecure_bool && (insecure_bool.class == TrueClass || insecure_bool.class == FalseClass)
+           SwaggerClient::Registry.new(name: resource[:name], url: resource[:url], insecure: insecure_bool, type: 'harbor')
+         else
+           SwaggerClient::Registry.new(name: resource[:name], url: resource[:url], type: 'harbor')
+         end
 
     begin
       api_instance.registries_post(nr)
@@ -103,17 +103,15 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
       puts "Exception when calling ProductsApi->registries_post: #{e}"
     end
 
-    if resource[:set_credential]
-      credential_bool = cast_to_bool(resource[:set_credential].to_s())
-    end
-
-    if credential_bool and (credential_bool.class == TrueClass)
+    # rubocop:disable Style/GuardClause
+    if resource[:set_credential] && cast_to_bool(resource[:set_credential].to_s)
       id = get_registry_id_by_name(resource[:name])
       set_registry_credential(id)
     end
+    # rubocop:enable Style/GuardClause
   end
 
-  def set_registry_credential(id)
+  def set_registry_credential(id) # rubocop:disable Style/AccessorMethodName
     api_instance = do_login
 
     repo_target = SwaggerClient::PutRegistry.new(access_key: resource[:access_key], access_secret: resource[:access_secret])
@@ -126,13 +124,8 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
   end
 
   def cast_to_bool(foo)
-    if foo == "true"
-      return 'true' == 'true'
-    end
-
-    if foo == "false"
-      return 'false' != 'false'
-    end
+    return true if foo == 'true'
+    return false if foo == 'false'
   end
 
   def get_registry_id_by_name(registry_name)
@@ -170,7 +163,7 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
 
     id = get_registry_id_by_name(resource[:name])
 
-    insecure_bool = cast_to_bool(resource[:insecure].to_s())
+    insecure_bool = cast_to_bool(resource[:insecure].to_s)
 
     repo_target = SwaggerClient::PutRegistry.new(insecure: insecure_bool)
 
