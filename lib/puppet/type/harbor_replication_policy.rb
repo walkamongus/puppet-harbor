@@ -10,13 +10,12 @@ Puppet::Type.newtype(:harbor_replication_policy) do
   end
 
   newproperty(:description) do
-    defaultto ""
+    defaultto ''
   end
 
   newparam(:replication_mode) do
     newvalues(:push, :pull)
   end
-
 
   newparam(:remote_registry) do
     desc 'Name of registry to push to/pull from'
@@ -28,7 +27,7 @@ Puppet::Type.newtype(:harbor_replication_policy) do
   newproperty(:trigger) do
   end
 
-  newproperty(:filters, :array_matching => :all) do
+  newproperty(:filters, array_matching: :all) do
   end
 
   newproperty(:deletion) do
@@ -40,4 +39,3 @@ Puppet::Type.newtype(:harbor_replication_policy) do
   newproperty(:enabled) do
   end
 end
-
