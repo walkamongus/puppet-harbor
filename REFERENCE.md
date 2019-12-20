@@ -11,11 +11,11 @@ _Public Classes_
 
 _Private Classes_
 
-* `harbor::backup`: 
-* `harbor::config`: 
-* `harbor::install`: 
-* `harbor::prepare`: 
-* `harbor::service`: 
+* `harbor::backup`: Backs up Harbor database to a known location if a version change is detected
+* `harbor::config`: Handles Harbor configuration files and running the migrator
+* `harbor::install`: Download Harbor and install into `/opt/harbor` and loads docker images if the offline installer is used
+* `harbor::prepare`: Runs the Harbor prepare script
+* `harbor::service`: Sets up a systemd unit file and service for Harbor
 
 **Resource types**
 

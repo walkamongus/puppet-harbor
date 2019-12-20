@@ -1,4 +1,5 @@
 # @api private
+# @summary Sets up a systemd unit file and service for Harbor
 class harbor::service (
   $cfg_version,
   $with_notary,
