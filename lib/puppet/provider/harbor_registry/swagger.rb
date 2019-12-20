@@ -2,6 +2,7 @@
 
 Puppet::Type.type(:harbor_registry).provide(:swagger) do
   mk_resource_methods
+  desc 'Swagger API implementation for harbor registries'
 
   def self.instances
     api_instance = do_login

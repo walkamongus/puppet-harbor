@@ -2,6 +2,7 @@
 
 Puppet::Type.type(:harbor_system_label).provide(:swagger) do
   mk_resource_methods
+  desc 'Swagger API implementation for harbor system-level labels'
 
   def self.instances
     api_instance = do_login
