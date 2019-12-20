@@ -1,4 +1,5 @@
 # @api private
+# @summary Runs the Harbor prepare script
 class harbor::prepare (
   $with_notary,
   $with_clair,

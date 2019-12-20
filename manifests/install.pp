@@ -1,4 +1,5 @@
 # @api private
+# @summary Download Harbor and install into `/opt/harbor` and loads docker images if the offline installer is used
 class harbor::install (
   $installer,
   $version,

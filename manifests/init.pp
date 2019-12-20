@@ -35,6 +35,9 @@
 # @param download_source
 #   Specifies download location for the Harbor installation tar file.
 #
+# @param checksum
+#   Specifies the MD5 checksum for downloaded Harbor installation tar file.
+#
 # @param hostname
 #   The target host's hostname, which is used to access the Portal and the registry service.
 #   It should be the IP address or the fully qualified domain name (FQDN) of your target machine.

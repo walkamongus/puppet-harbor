@@ -1,4 +1,5 @@
 # @api private
+# @summary Handles Harbor configuration files and running the migrator
 class harbor::config (
   $cfg_version,
   $hostname,

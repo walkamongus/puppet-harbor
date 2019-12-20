@@ -2,6 +2,7 @@
 
 Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   mk_resource_methods
+  desc 'Swagger API implementation for harbor system configurations'
 
   def do_login
     require 'yaml'

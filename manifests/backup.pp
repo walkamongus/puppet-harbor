@@ -1,4 +1,5 @@
 # @api private
+# @summary Backs up Harbor database to a known location if a version change is detected
 class harbor::backup (
   Pattern[/\d+\.\d+\.\d+.*/] $version,
   String $data_volume,
