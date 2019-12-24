@@ -223,6 +223,72 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
     end
   end
 
+  def update_replication_policy_param(resource)
+    api_instance = do_login
+
+    if resource[:deletion]
+      deletion_bool = cast_to_bool(resource[:deletion].to_s())
+    end
+
+    if resource[:enabled]
+      enabled_bool = cast_to_bool(resource[:enabled].to_s())
+    end
+
+    if resource[:override]
+      override_bool = cast_to_bool(resource[:override].to_s())
+    end
+
+    if resource[:replication_mode].to_s() == 'push'
+      dest_registry_info = get_registry_info_by_name(resource[:remote_registry])
+      fil = create_replication_filter_object(resource[:filters])
+      tr = create_replication_trigger_object(resource[:trigger])
+      policy = SwaggerClient::ReplicationPolicy.new(name: resource[:name], description: resource[:description], deletion: deletion_bool, enabled: enabled_bool, override: override_bool, dest_registry: dest_registry_info, trigger: tr, filters: fil)
+    end
+
+    if resource[:replication_mode].to_s() == 'pull'
+      src_registry_info = get_registry_info_by_name(resource[:remote_registry])
+      fil = create_replication_filter_object(resource[:filters])
+      tr = create_replication_trigger_object(resource[:trigger])
+      policy = SwaggerClient::ReplicationPolicy.new(name: resource[:name], description: resource[:description], deletion: deletion_bool, enabled: enabled_bool, override: override_bool, src_registry: src_registry_info, trigger: tr, filters: fil)
+    end
+
+    id = get_replication_policy_id_by_name(resource[:name])
+
+    begin
+      api_instance.replication_policies_id_put(id, policy)
+    rescue SwaggerClient::ApiError => e
+      puts "Exception when calling ProductsApi->replication_policies_id_put: #{e}"
+    end
+  end
+
+  def trigger=(_value)
+    update_replication_policy_param(resource)
+  end
+
+  def description=(_value)
+    update_replication_policy_param(resource)
+  end
+
+  def deletion=(_value)
+    update_replication_policy_param(resource)
+  end
+
+  def override=(_value)
+    update_replication_policy_param(resource)
+  end
+
+  def src_registry=(_value)
+    update_replication_policy_param(resource)
+  end
+
+  def dest_registry=(_value)
+    update_replication_policy_param(resource)
+  end
+
+  def filters=(_value)
+    update_replication_policy_param(resource)
+  end
+
   def destroy
     api_instance = do_login
 
