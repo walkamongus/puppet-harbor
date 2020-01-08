@@ -227,29 +227,43 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
     api_instance = do_login
 
     if resource[:deletion]
-      deletion_bool = cast_to_bool(resource[:deletion].to_s())
+      deletion_bool = cast_to_bool(resource[:deletion].to_s)
     end
 
     if resource[:enabled]
-      enabled_bool = cast_to_bool(resource[:enabled].to_s())
+      enabled_bool = cast_to_bool(resource[:enabled].to_s)
     end
 
     if resource[:override]
-      override_bool = cast_to_bool(resource[:override].to_s())
+      override_bool = cast_to_bool(resource[:override].to_s)
     end
 
-    if resource[:replication_mode].to_s() == 'push'
+    if resource[:replication_mode].to_s == 'push'
       dest_registry_info = get_registry_info_by_name(resource[:remote_registry])
       fil = create_replication_filter_object(resource[:filters])
       tr = create_replication_trigger_object(resource[:trigger])
-      policy = SwaggerClient::ReplicationPolicy.new(name: resource[:name], description: resource[:description], deletion: deletion_bool, enabled: enabled_bool, override: override_bool, dest_registry: dest_registry_info, trigger: tr, filters: fil)
+      policy = SwaggerClient::ReplicationPolicy.new(name: resource[:name],
+        description: resource[:description],
+        deletion: deletion_bool,
+        enabled: enabled_bool,
+        override: override_bool,
+        dest_registry: dest_registry_info,
+        trigger: tr,
+        filters: fil)
     end
 
-    if resource[:replication_mode].to_s() == 'pull'
+    if resource[:replication_mode].to_s == 'pull'
       src_registry_info = get_registry_info_by_name(resource[:remote_registry])
       fil = create_replication_filter_object(resource[:filters])
       tr = create_replication_trigger_object(resource[:trigger])
-      policy = SwaggerClient::ReplicationPolicy.new(name: resource[:name], description: resource[:description], deletion: deletion_bool, enabled: enabled_bool, override: override_bool, src_registry: src_registry_info, trigger: tr, filters: fil)
+      policy = SwaggerClient::ReplicationPolicy.new(name: resource[:name],
+        description: resource[:description],
+        deletion: deletion_bool,
+        enabled: enabled_bool,
+        override: override_bool,
+        src_registry: src_registry_info,
+        trigger: tr,
+        filters: fil)
     end
 
     id = get_replication_policy_id_by_name(resource[:name])
