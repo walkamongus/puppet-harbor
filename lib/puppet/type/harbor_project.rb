@@ -6,9 +6,10 @@ Puppet::Type.newtype(:harbor_project) do
 
 @example Creating a project in Harbor
     harbor_project { 'my-project':
-      ensure  => present,
-      public  => 'true',
-      members => ['bob', 'alice'],
+      ensure        => present,
+      public        => 'true',
+      members       => ['bob', 'alice'],
+      member_groups => ['This Team', 'That Team'],
     }
 DESC
 
@@ -26,6 +27,13 @@ DESC
 
   newproperty(:members, array_matching: :all) do
     desc 'An array of members for the project'
+    def insync?(is)
+      is.sort == should.sort
+    end
+  end
+
+  newproperty(:member_groups, array_matching: :all) do
+    desc 'An array of member groups for the project'
     def insync?(is)
       is.sort == should.sort
     end

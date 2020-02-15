@@ -76,12 +76,13 @@ See 'Limitations' below.
 It is possible to create projects using the 'harbor_project' resource.  You can also manage user membership in projects, and control whether projects are public or private at creation time:
 ```
   harbor_project { 'my-project':
-    ensure  => present,
-    public  => 'true',
-    members => ['bob', 'alice'],
+    ensure        => present,
+    public        => 'true',
+    members       => ['bob', 'alice'],
+    member_groups => ['This Team', 'That Team'],
   }
 ```
-All members will be created as 'Developers' giving them full Read and Write access to the project and its associated repositories.
+All members and member groups will be created as 'Developers' giving them full Read and Write access to the project and its associated repositories.
 
 See 'Limitations' below.
 
@@ -94,7 +95,7 @@ I to set the user password.
 
 It is currently not possible to modify whether a project is 'public' or 'private' after creation via this module.
 
-Adding group membership to harbor projects is a work-in-progress.
+Group membership has only been tested against LDAP groups that have been imported in to Harbor but probably works for other types.  It is necessary to pre-create/import your groups before attempting to assign member_groups using this module.
 
 This module supports:
 

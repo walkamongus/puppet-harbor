@@ -15,6 +15,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
         name: project.name,
         public: project.metadata.public,
         members: get_project_members(api_instance, project),
+        member_groups: get_project_member_groups(api_instance, project),
         provider: :swagger,
       )
     end
@@ -24,7 +25,21 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     members = api_instance.projects_project_id_members_get(project.project_id)
     member_arry = []
     members.each do |member|
-      member_arry << member.entity_name
+      if member.entity_type == 'u'
+        member_arry << member.entity_name
+      end
+    end
+    member_arry.sort!.delete('admin')
+    member_arry
+  end
+
+  def self.get_project_member_groups(api_instance, project)
+    members = api_instance.projects_project_id_members_get(project.project_id)
+    member_arry = []
+    members.each do |member|
+      if member.entity_type == 'g'
+        member_arry << member.entity_name.downcase!
+      end
     end
     member_arry.sort!.delete('admin')
     member_arry
@@ -103,11 +118,17 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
       puts "Exception when calling ProductsApi->projects_post: #{e}"
     end
 
-    return nil if resource[:members].nil?
+    return nil if resource[:members].nil? and resource[:member_groups].nil?
 
     id = get_project_id_by_name(resource[:name])
-    members = resource[:members]
-    add_members_to_project(id, members)
+    unless resource[:members].nil?
+      members = resource[:members]
+      add_members_to_project(id, members)
+    end
+    unless resource[:member_groups].nil?
+      member_groups = resource[:member_groups]
+      add_member_groups_to_project(id, member_groups)
+    end
   end
 
   def members
@@ -116,7 +137,9 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     members = api_instance.projects_project_id_members_get(id)
     member_arry = []
     members.each do |member|
-      member_arry << member.entity_name
+      if member.entity_type == 'u'
+        member_arry << member.entity_name
+      end
     end
     member_arry.sort!.delete('admin')
     member_arry
@@ -135,6 +158,34 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     add_members_to_project(id, members) unless members_to_add.empty?
   end
 
+  def member_groups
+    api_instance = do_login
+    id = get_project_id_by_name(resource[:name])
+    members = api_instance.projects_project_id_members_get(id)
+    member_arry = []
+    members.each do |member|
+      if member.entity_type == 'g'
+        member_arry << member.entity_name.downcase!
+      end
+    end
+    member_arry.sort!.delete('admin')
+    member_arry
+  end
+
+  def member_groups=(_value)
+    do_login
+    id = get_project_id_by_name(resource[:name])
+    current_member_groups = get_current_project_member_groups(id)
+    member_groups = resource[:member_groups]
+    if current_member_groups != nil?
+      member_groups_to_delete = current_member_groups - member_groups
+      member_groups_to_add = member_groups - current_member_groups
+    end
+    remove_member_groups_from_project(id, member_groups_to_delete) unless member_groups_to_delete.empty?
+    add_member_groups_to_project(id, member_groups) unless member_groups_to_add.empty?
+  end
+
+
   def get_project_id_by_name(project_name)
     api_instance = do_login
 
@@ -151,7 +202,22 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     members = api_instance.projects_project_id_members_get(id)
     member_arry = []
     members.each do |member|
-      member_arry << member.entity_name
+      if member.entity_type == 'u'
+        member_arry << member.entity_name
+      end
+    end
+    member_arry.sort!.delete('admin')
+    member_arry
+  end
+
+  def get_current_project_member_groups(id)
+    api_instance = do_login
+    members = api_instance.projects_project_id_members_get(id)
+    member_arry = []
+    members.each do |member|
+      if member.entity_type == 'g'
+        member_arry << member.entity_name
+      end
     end
     member_arry.sort!.delete('admin')
     member_arry
@@ -171,12 +237,46 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     end
   end
 
+  def add_member_groups_to_project(id, member_groups)
+    api_instance = do_login
+
+    member_groups.sort!
+    member_groups.each do |group|
+      gid = get_usergroup_id_by_name(group)
+      opts = { project_member: { role_id: 2, member_group: { "id": gid } } } # role_id 2 == 'Developer'
+      begin
+        api_instance.projects_project_id_members_post(id, opts)
+      rescue SwaggerClient::ApiError
+        # EWWWWWW dirty hack to avoid 'Conflict' response from API
+      end
+    end
+  end
+
+  def get_usergroup_id_by_name(group)
+    api_instance = do_login
+
+    ug = api_instance.usergroups_get()
+    group.downcase!
+    x = ug.select { |g| g.group_name.downcase! == group }
+    x[0].id
+  end
+
   def remove_members_from_project(id, members_to_delete)
     api_instance = do_login
 
     members_to_delete.sort!
     members_to_delete.each do |member|
       mid = get_project_member_id_by_name(id, member)
+      api_instance.projects_project_id_members_mid_delete(id, mid)
+    end
+  end
+
+  def remove_member_groups_from_project(id, member_groups_to_delete)
+    api_instance = do_login
+
+    member_groups_to_delete.sort!
+    member_groups_to_delete.each do |member_group|
+      mid = get_project_member_id_by_name(id, member_group)
       api_instance.projects_project_id_members_mid_delete(id, mid)
     end
   end
