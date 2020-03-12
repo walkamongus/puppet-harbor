@@ -139,6 +139,24 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     end
   end
 
+  def public=(_value)
+    api_instance = do_login
+
+    id = get_project_id_by_name(resource[:name])
+
+    project = {
+      "metadata": {
+        "public": resource[:public],
+      }
+    }
+
+    begin
+      api_instance.projects_project_id_put(id, project, opts = {})
+    rescue SwaggerClient::ApiError => e
+      puts "Exception when calling ProductsApi->projects_project_id_put: #{e}"
+    end
+  end
+
   def members
     api_instance = do_login
     id = get_project_id_by_name(resource[:name])

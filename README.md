@@ -73,7 +73,8 @@ See 'Limitations' below.
 
 ### Projects
 
-It is possible to create projects using the 'harbor_project' resource.  You can also manage user membership in projects, and control whether projects are public or private at creation time:
+It is possible to create projects using the 'harbor_project' resource.  You can also manage user membership in projects, and control whether projects are public or private: 
+
 ```
   harbor_project { 'my-project':
     ensure        => present,
@@ -92,8 +93,6 @@ If you wish to enable ldap auth you must do so before adding any local user acco
 
 The Harbor API currently provides no facility for passing the password for the ldap user passed in the above harbor_user_settings resource.  You will need to login to the U
 I to set the user password.
-
-It is currently not possible to modify whether a project is 'public' or 'private' after creation via this module.
 
 Group membership has only been tested against LDAP groups that have been imported in to Harbor but probably works for other types.  It is necessary to pre-create/import your groups before attempting to assign member_groups using this module.
 
