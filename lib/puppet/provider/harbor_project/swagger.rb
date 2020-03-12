@@ -102,8 +102,16 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
 
     if result.nil?
       false
-    else
+    end
+
+    result_names = []
+    for r in result
+      result_names << r.name
+    end
+    if result_names.include?(resource[:name])
       true
+    else
+      false
     end
   end
 
