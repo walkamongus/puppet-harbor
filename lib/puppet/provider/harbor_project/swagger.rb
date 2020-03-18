@@ -219,7 +219,8 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
       name: project_name,
     }
 
-    project = api_instance.projects_get(opts)
+    projects = api_instance.projects_get(opts)
+    project = projects.select { |n| n.name == project_name }
     project[0].project_id
   end
 
