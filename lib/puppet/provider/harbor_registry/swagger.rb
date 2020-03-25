@@ -42,6 +42,10 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
       config.scheme = my_config['scheme']
       config.verify_ssl = my_config['verify_ssl']
       config.verify_ssl_host = my_config['verify_ssl_host']
+      config.ssl_ca_cert = my_config['ssl_ca_cert']
+      if my_config['host']
+        config.host = my_config['host']
+      end
     end
 
     api_instance = SwaggerClient::ProductsApi.new
@@ -59,6 +63,10 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
       config.scheme = my_config['scheme']
       config.verify_ssl = my_config['verify_ssl']
       config.verify_ssl_host = my_config['verify_ssl_host']
+      config.ssl_ca_cert = my_config['ssl_ca_cert']
+      if my_config['host']
+        config.host = my_config['host']
+      end
     end
 
     api_instance = SwaggerClient::ProductsApi.new
