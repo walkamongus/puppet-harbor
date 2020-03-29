@@ -5,7 +5,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   desc 'Swagger API implementation for harbor projects'
 
   def self.instances
-    api_instance = self.class.do_login
+    api_instance = do_login
 
     projects = api_instance.projects_get
 

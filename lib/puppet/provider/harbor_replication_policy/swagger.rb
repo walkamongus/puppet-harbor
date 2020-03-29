@@ -5,7 +5,7 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   desc 'Swagger API implementation for harbor replication policies'
 
   def self.instances
-    api_instance = self.class.do_login
+    api_instance = do_login
 
     replication_policies = api_instance.replication_policies_get
 
