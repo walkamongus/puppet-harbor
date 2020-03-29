@@ -1,24 +1,17 @@
 require 'spec_helper'
 
 describe Puppet::Type.type(:harbor_project).provider(:swagger) do
-  on_supported_os.each do |os, facts|
+  on_supported_os.each do |os, os_facts|
     context "on #{os}" do
-      before :each do
-        Facter.clear
-        facts.each do |k, v|
-          Facter.stubs(:fact).with(k).returns Facter.add(k) { setcode { v } }
-        end
+      let(:facts) do
+        os_facts
       end
 
-      describe 'instances' do
-        it 'should have an method \"instances\"' do
-          expect(described_class).to respond_to :instances
-        end
-      end
-
-      describe 'prefetch' do
-        it 'should have a method \"prefetch\"' do
-          expect(described_class).to respond_to :prefetch
+      describe 'when validating class interface' do
+        [ :instances, :prefetch ].each do |method|
+          it "should have a method \"#{method}\"" do
+            expect(described_class).to respond_to :method
+          end
         end
       end
     end
