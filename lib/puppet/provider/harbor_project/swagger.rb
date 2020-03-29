@@ -5,7 +5,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   desc 'Swagger API implementation for harbor projects'
 
   def self.instances
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     projects = api_instance.projects_get
 
@@ -74,29 +74,8 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     api_instance
   end
 
-  def do_login
-    require 'yaml'
-    require 'harbor_swagger_client'
-    my_config = YAML.load_file('/etc/puppetlabs/swagger.yaml')
-
-    SwaggerClient.configure do |config|
-      config.username = my_config['username']
-      config.password = my_config['password']
-      config.scheme = my_config['scheme']
-      config.verify_ssl = my_config['verify_ssl']
-      config.verify_ssl_host = my_config['verify_ssl_host']
-      config.ssl_ca_cert = my_config['ssl_ca_cert']
-      if my_config['host']
-        config.host = my_config['host']
-      end
-    end
-
-    api_instance = SwaggerClient::ProductsApi.new
-    api_instance
-  end
-
   def exists?
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     opts = {
       name: resource[:name],
@@ -124,7 +103,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def create
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     np = SwaggerClient::ProjectReq.new(project_name: resource[:name], metadata: { public: resource[:public] })
 
@@ -148,7 +127,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def public=(_value)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     id = get_project_id_by_name(resource[:name])
 
@@ -166,7 +145,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def members
-    api_instance = do_login
+    api_instance = self.class.do_login
     id = get_project_id_by_name(resource[:name])
     members = api_instance.projects_project_id_members_get(id)
     member_arry = []
@@ -193,7 +172,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def member_groups
-    api_instance = do_login
+    api_instance = self.class.do_login
     id = get_project_id_by_name(resource[:name])
     members = api_instance.projects_project_id_members_get(id)
     member_arry = []
@@ -221,7 +200,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
 
 
   def get_project_id_by_name(project_name)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     opts = {
       name: project_name,
@@ -233,7 +212,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def get_current_project_members(id)
-    api_instance = do_login
+    api_instance = self.class.do_login
     members = api_instance.projects_project_id_members_get(id)
     member_arry = []
     members.each do |member|
@@ -246,7 +225,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def get_current_project_member_groups(id)
-    api_instance = do_login
+    api_instance = self.class.do_login
     members = api_instance.projects_project_id_members_get(id)
     member_arry = []
     members.each do |member|
@@ -259,7 +238,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def add_members_to_project(id, members)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     members.sort!
     members.each do |member|
@@ -273,7 +252,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def add_member_groups_to_project(id, member_groups)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     member_groups.sort!
     member_groups.each do |group|
@@ -288,7 +267,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def get_usergroup_id_by_name(group)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     ug = api_instance.usergroups_get()
     group.downcase!
@@ -297,7 +276,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def remove_members_from_project(id, members_to_delete)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     members_to_delete.sort!
     members_to_delete.each do |member|
@@ -307,7 +286,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def remove_member_groups_from_project(id, member_groups_to_delete)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     member_groups_to_delete.sort!
     member_groups_to_delete.each do |member_group|
@@ -317,7 +296,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def get_project_member_id_by_name(id, member)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     opts = {
       entityname: member,
@@ -328,7 +307,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def destroy
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     opts = {
       name: resource[:name],

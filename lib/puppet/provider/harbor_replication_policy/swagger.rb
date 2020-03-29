@@ -5,7 +5,7 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   desc 'Swagger API implementation for harbor replication policies'
 
   def self.instances
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     replication_policies = api_instance.replication_policies_get
 
@@ -71,29 +71,8 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
     api_instance
   end
 
-  def do_login
-    require 'yaml'
-    require 'harbor_swagger_client'
-    my_config = YAML.load_file('/etc/puppetlabs/swagger.yaml')
-
-    SwaggerClient.configure do |config|
-      config.username = my_config['username']
-      config.password = my_config['password']
-      config.scheme = my_config['scheme']
-      config.verify_ssl = my_config['verify_ssl']
-      config.verify_ssl_host = my_config['verify_ssl_host']
-      config.ssl_ca_cert = my_config['ssl_ca_cert']
-      if my_config['host']
-        config.host = my_config['host']
-      end
-    end
-
-    api_instance = SwaggerClient::ProductsApi.new
-    api_instance
-  end
-
   def get_replication_policy_id_by_name(replication_policy_name)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     opts = {
       name: replication_policy_name,
@@ -109,7 +88,7 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def exists?
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     opts = {
       name: resource[:name],
@@ -134,7 +113,7 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def get_registry_id_by_name(registry_name)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     opts = {
       name: registry_name,
@@ -150,7 +129,7 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def get_registry_info_by_name(registry_name)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     opts = {
       name: registry_name,
@@ -180,7 +159,7 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def create
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     if resource[:deletion]
       deletion_bool = cast_to_bool(resource[:deletion].to_s)
@@ -232,7 +211,7 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def update_replication_policy_param(resource)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     if resource[:deletion]
       deletion_bool = cast_to_bool(resource[:deletion].to_s)
@@ -312,7 +291,7 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def destroy
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     replication_policy_id = get_replication_policy_id_by_name(resource[:name])
 
