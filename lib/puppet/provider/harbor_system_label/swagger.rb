@@ -39,23 +39,10 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
       config.scheme = my_config['scheme']
       config.verify_ssl = my_config['verify_ssl']
       config.verify_ssl_host = my_config['verify_ssl_host']
-    end
-
-    api_instance = SwaggerClient::ProductsApi.new
-    api_instance
-  end
-
-  def do_login
-    require 'yaml'
-    require 'harbor_swagger_client'
-    my_config = YAML.load_file('/etc/puppetlabs/swagger.yaml')
-
-    SwaggerClient.configure do |config|
-      config.username = my_config['username']
-      config.password = my_config['password']
-      config.scheme = my_config['scheme']
-      config.verify_ssl = my_config['verify_ssl']
-      config.verify_ssl_host = my_config['verify_ssl_host']
+      config.ssl_ca_cert = my_config['ssl_ca_cert']
+      if my_config['host']
+        config.host = my_config['host']
+      end
     end
 
     api_instance = SwaggerClient::ProductsApi.new
@@ -63,7 +50,7 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
   end
 
   def get_label_id_by_name(label_name)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     opts = {
       name: label_name,
@@ -79,7 +66,7 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
   end
 
   def name=(_value)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     id = get_label_id_by_name(resource[:name])
 
@@ -97,7 +84,7 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
   end
 
   def description=(_value)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     id = get_label_id_by_name(resource[:name])
 
@@ -115,7 +102,7 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
   end
 
   def color=(_value)
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     id = get_label_id_by_name(resource[:name])
 
@@ -133,7 +120,7 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
   end
 
   def exists?
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     opts = {
       name: resource[:name],
@@ -153,7 +140,7 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
   end
 
   def create
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     nl = SwaggerClient::Label.new(name: resource[:name], description: resource[:description], color: resource[:color], scope: 'g')
 
@@ -165,7 +152,7 @@ Puppet::Type.type(:harbor_system_label).provide(:swagger) do
   end
 
   def destroy
-    api_instance = do_login
+    api_instance = self.class.do_login
 
     label_id = get_label_id_by_name(resource[:name])
 
