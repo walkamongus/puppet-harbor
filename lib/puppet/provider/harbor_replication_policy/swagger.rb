@@ -5,26 +5,32 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   desc 'Swagger API implementation for harbor replication policies'
 
   def self.instances
-    api_instance = do_login
-
-    replication_policies = api_instance.replication_policies_get
-
-    replication_policies.map do |replication_policy|
+    all_policies = get_all_policies
+    all_policies.map do |p|
       new(
-        ensure: :present,
-        name: replication_policy.name,
-        description: replication_policy.description,
-        src_registry: replication_policy.src_registry.name,
-        dest_registry: replication_policy.dest_registry,
-        dest_namespace: replication_policy.dest_namespace,
-        trigger: trigger_object_to_hash(replication_policy.trigger),
-        filters: filter_objects_to_array(replication_policy.filters),
-        deletion: replication_policy.deletion,
-        override: replication_policy.override,
-        enabled: replication_policy.enabled,
-        provider: :swagger,
+        ensure:         :present,
+        name:           p.name,
+        description:    p.description,
+        src_registry:   p.src_registry.name,
+        dest_registry:  p.dest_registry,
+        dest_namespace: p.dest_namespace,
+        trigger:        trigger_object_to_hash(p.trigger),
+        filters:        filter_objects_to_array(p.filters),
+        deletion:       cast_bool_to_symbol(p.deletion),
+        override:       cast_bool_to_symbol(p.override),
+        enabled:        cast_bool_to_symbol(p.enabled),
+        provider:       :swagger,
       )
     end
+  end
+
+  def self.get_all_policies
+    api_instance = do_login
+    api_instance.replication_policies_get
+  end
+
+  def self.cast_bool_to_symbol(foo)
+    foo ? :true : :false
   end
 
   def self.prefetch(resources)
@@ -44,8 +50,9 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def self.trigger_object_to_hash(trigger)
+    hsh = { 'type' => trigger.type }
     if trigger.trigger_settings
-      hsh = { 'type' => trigger.type, 'trigger_settings' => { 'cron' => trigger.trigger_settings.cron } }
+      hsh['trigger_settings'] = { 'cron' => trigger.trigger_settings.cron }
     end
     hsh
   end
@@ -71,77 +78,75 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
     api_instance
   end
 
-  def get_replication_policy_id_by_name(replication_policy_name)
-    api_instance = self.class.do_login
-
-    opts = {
-      name: replication_policy_name,
-    }
-
-    begin
-      replication_policy = api_instance.replication_policies_get(opts)
-    rescue SwaggerClient::ApiError => e
-      puts "Exception when calling ProductsApi->replication_policies_get: #{e}"
-    end
-
-    replication_policy[0].id
-  end
-
   def exists?
-    api_instance = self.class.do_login
+    policy = get_replication_policy_with_name(resource[:name])
+    !policy.nil?
+  end
 
-    opts = {
-      name: resource[:name],
-    }
+  def get_replication_policy_with_name(name)
+    policies = get_policies_containing_name(name)
+    filter_policy_with_name(policies, name)
+  end
 
+  def get_policies_containing_name(name)
+    # This might return also other policies which contain the name, e.g. when searching for 'demo'
+    # and there is also 'demo_push' the resulting array will contain both.
+    opts = { name: name, }
+    get_policies_with_opts(opts)
+  end
+
+  def get_policies_with_opts(opts)
+    api_instance =  self.class.do_login
     begin
-      result = api_instance.replication_policies_get(opts)
+      api_instance.replication_policies_get(opts)
     rescue SwaggerClient::ApiError => e
       puts "Exception when calling ProductsApi->replication_policies_get: #{e}"
     end
-
-    if result.empty?
-      false
-    else
-      true
-    end
   end
 
-  def cast_to_bool(foo)
-    return true if foo == 'true'
-    return false if foo == 'false'
+  def filter_policy_with_name(policies, name)
+    filtered = policies.select { |p| p.name == name }
+    filtered.empty? ? nil : filtered[0]
   end
 
-  def get_registry_id_by_name(registry_name)
-    api_instance = self.class.do_login
+  def create
+    policy = create_policy_from_resource
+    post_replication_policy(policy)
+  end
 
-    opts = {
-      name: registry_name,
-    }
-
-    begin
-      registry = api_instance.registries_get(opts)
-    rescue SwaggerClient::ApiError => e
-      puts "Exception when calling ProductsApi->registries_get: #{e}"
-    end
-
-    registry[0].id
+  def create_policy_from_resource
+    remote_registry_info = get_registry_info_by_name(resource[:remote_registry])
+    mode = resource[:replication_mode].to_s
+    SwaggerClient::ReplicationPolicy.new(
+      name:           resource[:name],
+      description:    resource[:description],
+      deletion:       cast_symbol_to_bool(resource[:deletion]),
+      enabled:        cast_symbol_to_bool(resource[:enabled]),
+      override:       cast_symbol_to_bool(resource[:override]),
+      dest_registry:  (mode == 'push') ? remote_registry_info : nil,
+      src_registry:   (mode == 'pull') ? remote_registry_info : nil,
+      dest_namespace: resource[:dest_namespace],
+      trigger:        create_replication_trigger_object(resource[:trigger]),
+      filters:        create_replication_filter_object(resource[:filters]),
+    )
   end
 
   def get_registry_info_by_name(registry_name)
-    api_instance = self.class.do_login
-
-    opts = {
-      name: registry_name,
-    }
+    api_instance =  self.class.do_login
+    opts = { name: registry_name }
 
     begin
-      registry = api_instance.registries_get(opts)
+      registries = api_instance.registries_get(opts)
     rescue SwaggerClient::ApiError => e
       puts "Exception when calling ProductsApi->registries_get: #{e}"
     end
 
-    registry[0]
+    filtered = registries.select { |r| r.name == registry_name }
+    filtered.empty? ? nil : filtered[0]
+  end
+
+  def cast_symbol_to_bool(foo)
+    foo.to_s == 'true'
   end
 
   def create_replication_filter_object(filters)
@@ -154,107 +159,30 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def create_replication_trigger_object(trigger)
-    tr = SwaggerClient::ReplicationTrigger.new(trigger)
-    tr
+    SwaggerClient::ReplicationTrigger.new(trigger)
   end
 
-  def create
-    api_instance = self.class.do_login
-
-    if resource[:deletion]
-      deletion_bool = cast_to_bool(resource[:deletion].to_s)
-    end
-
-    if resource[:enabled]
-      enabled_bool = cast_to_bool(resource[:enabled].to_s)
-    end
-
-    if resource[:override]
-      override_bool = cast_to_bool(resource[:override].to_s)
-    end
-
-    if resource[:replication_mode].to_s == 'push'
-      dest_registry_info = get_registry_info_by_name(resource[:remote_registry])
-      fil = create_replication_filter_object(resource[:filters])
-      tr = create_replication_trigger_object(resource[:trigger])
-      np = SwaggerClient::ReplicationPolicy.new(
-        name: resource[:name],
-        deletion: deletion_bool,
-        enabled: enabled_bool,
-        override: override_bool,
-        dest_registry: dest_registry_info,
-        trigger: tr,
-        filters: fil,
-      )
-    end
-
-    if resource[:replication_mode].to_s == 'pull'
-      src_registry_info = get_registry_info_by_name(resource[:remote_registry])
-      fil = create_replication_filter_object(resource[:filters])
-      tr = create_replication_trigger_object(resource[:trigger])
-      np = SwaggerClient::ReplicationPolicy.new(
-        name: resource[:name],
-        deletion: deletion_bool,
-        enabled: enabled_bool,
-        override: override_bool,
-        src_registry: src_registry_info,
-        trigger: tr,
-        filters: fil,
-      )
-    end
-
+  def post_replication_policy(policy)
+    api_instance =  self.class.do_login
     begin
-      api_instance.replication_policies_post(np)
+      api_instance.replication_policies_post(policy)
     rescue SwaggerClient::ApiError => e
       puts "Exception when calling ProductsApi->replication_policies_post: #{e}"
     end
   end
 
+  def flush
+    update_replication_policy_param(resource)
+  end
+
   def update_replication_policy_param(resource)
-    api_instance = self.class.do_login
+    policy = create_policy_from_resource
+    put_replication_policy(policy)
+  end
 
-    if resource[:deletion]
-      deletion_bool = cast_to_bool(resource[:deletion].to_s)
-    end
-
-    if resource[:enabled]
-      enabled_bool = cast_to_bool(resource[:enabled].to_s)
-    end
-
-    if resource[:override]
-      override_bool = cast_to_bool(resource[:override].to_s)
-    end
-
-    if resource[:replication_mode].to_s == 'push'
-      dest_registry_info = get_registry_info_by_name(resource[:remote_registry])
-      fil = create_replication_filter_object(resource[:filters])
-      tr = create_replication_trigger_object(resource[:trigger])
-      policy = SwaggerClient::ReplicationPolicy.new(name: resource[:name],
-        description: resource[:description],
-        deletion: deletion_bool,
-        enabled: enabled_bool,
-        override: override_bool,
-        dest_registry: dest_registry_info,
-        trigger: tr,
-        filters: fil)
-    end
-
-    if resource[:replication_mode].to_s == 'pull'
-      src_registry_info = get_registry_info_by_name(resource[:remote_registry])
-      fil = create_replication_filter_object(resource[:filters])
-      tr = create_replication_trigger_object(resource[:trigger])
-      policy = SwaggerClient::ReplicationPolicy.new(name: resource[:name],
-        description: resource[:description],
-        deletion: deletion_bool,
-        enabled: enabled_bool,
-        override: override_bool,
-        src_registry: src_registry_info,
-        trigger: tr,
-        filters: fil)
-    end
-
-    id = get_replication_policy_id_by_name(resource[:name])
-
+  def put_replication_policy(policy)
+    id = get_replication_policy_id_by_name(policy.name)
+    api_instance =  self.class.do_login
     begin
       api_instance.replication_policies_id_put(id, policy)
     rescue SwaggerClient::ApiError => e
@@ -262,41 +190,16 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
     end
   end
 
-  def trigger=(_value)
-    update_replication_policy_param(resource)
-  end
-
-  def description=(_value)
-    update_replication_policy_param(resource)
-  end
-
-  def deletion=(_value)
-    update_replication_policy_param(resource)
-  end
-
-  def override=(_value)
-    update_replication_policy_param(resource)
-  end
-
-  def src_registry=(_value)
-    update_replication_policy_param(resource)
-  end
-
-  def dest_registry=(_value)
-    update_replication_policy_param(resource)
-  end
-
-  def filters=(_value)
-    update_replication_policy_param(resource)
+  def get_replication_policy_id_by_name(name)
+    policy = get_replication_policy(name)
+    policy.id
   end
 
   def destroy
-    api_instance = self.class.do_login
-
-    replication_policy_id = get_replication_policy_id_by_name(resource[:name])
-
+    api_instance =  self.class.do_login
+    id = get_replication_policy_id_by_name(resource[:name])
     begin
-      api_instance.replication_policies_id_delete(replication_policy_id)
+      api_instance.replication_policies_id_delete(id)
     rescue SwaggerClient::ApiError => e
       puts "Exception when calling ProductsApi->replication_policy_id_delete: #{e}"
     end
