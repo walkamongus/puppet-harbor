@@ -6,21 +6,25 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
 
   def self.instances
     api_instance = do_login
-
     registries = api_instance.registries_get
-
-    registries.map do |registry|
-      new(
-        ensure: :present,
-        name: registry.name,
-        description: registry.description,
-        url: registry.url,
-        access_key: registry.credential.access_key,
-        access_secret: registry.credential.access_secret,
-        insecure: registry.insecure.to_s,
-        provider: :swagger,
-      )
+    if registries.nil?
+      []
+    else
+      registries.map do |registry|
+        new(
+          ensure:      :present,
+          name:        registry.name,
+          description: registry.description,
+          url:         registry.url,
+          insecure:    cast_bool_to_symbol(registry.insecure),
+          provider:    :swagger,
+        )
+      end
     end
+  end
+
+  def self.cast_bool_to_symbol(foo)
+    foo ? :true : :false
   end
 
   def self.prefetch(resources)
@@ -53,62 +57,54 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
   end
 
   def exists?
+    registry = get_registry_with_name(resource[:name])
+    !registry.nil?
+  end
+
+  def get_registry_with_name(name)
+    registries = get_registries_containing_name(resource[:name])
+    filter_registry_with_name(registries, name)
+  end
+
+  def get_registries_containing_name(name)
+    opts = { name: name }
     api_instance = self.class.do_login
-
-    opts = {
-      name: resource[:name],
-    }
-
     begin
-      result = api_instance.registries_get(opts)
+      registries = api_instance.registries_get(opts)
+      registries.nil? ? [] : registries
     rescue SwaggerClient::ApiError => e
       puts "Exception when calling ProductsApi->registries_get: #{e}"
     end
+  end
 
-    if result.nil?
-      false
-    else
-      true
-    end
+  def filter_registry_with_name(all_registries, name)
+    filtered_registries = all_registries.select { |r| r.name == name }
+    filtered_registries.empty? ? nil : filtered_registries[0]
   end
 
   def create
-    api_instance = self.class.do_login
-
-    if resource[:insecure]
-      insecure_bool = cast_to_bool(resource[:insecure].to_s)
-    end
-
-    nr = if insecure_bool && (insecure_bool.class == TrueClass || insecure_bool.class == FalseClass)
-           SwaggerClient::Registry.new(name: resource[:name], url: resource[:url], insecure: insecure_bool, type: 'harbor')
-         else
-           SwaggerClient::Registry.new(name: resource[:name], url: resource[:url], type: 'harbor')
-         end
-
-    begin
-      api_instance.registries_post(nr)
-    rescue SwaggerClient::ApiError => e
-      puts "Exception when calling ProductsApi->registries_post: #{e}"
-    end
-
-    # rubocop:disable Style/GuardClause
-    if resource[:set_credential] && cast_to_bool(resource[:set_credential].to_s)
-      id = get_registry_id_by_name(resource[:name])
-      set_registry_credential(id)
-    end
-    # rubocop:enable Style/GuardClause
+    nr = SwaggerClient::Registry.new(
+      name:       resource[:name],
+      url:        resource[:url],
+      type:       resource[:type],
+      insecure:   cast_symbol_to_bool(resource[:insecure]),
+      credential: create_credential)
+    post_registry(nr)
   end
 
-  def set_registry_credential(id) # rubocop:disable Style/AccessorMethodName
-    api_instance = self.class.do_login
-
-    repo_target = SwaggerClient::PutRegistry.new(access_key: resource[:access_key], access_secret: resource[:access_secret])
-
-    begin
-      api_instance.registries_id_put(id, repo_target)
-    rescue SwaggerClient::ApiError => e
-      puts "Exception when calling ProductsApi->registries_id_put: #{e}"
+  def create_credential
+    if cast_symbol_to_bool(resource[:set_credential])
+      SwaggerClient::RegistryCredential.new(
+        type:          'basic',
+        access_key:    resource[:access_key],
+        access_secret: resource[:access_secret])
+    else
+      nil
     end
+  end
+
+  def cast_symbol_to_bool(foo)
+    foo.to_s == 'true'
   end
 
   def cast_to_bool(foo)
@@ -116,69 +112,48 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
     return false if foo == 'false'
   end
 
-  def get_registry_id_by_name(registry_name)
-    api_instance = self.class.do_login
-
-    opts = {
-      name: registry_name,
-    }
-
+  def post_registry(registry)
+    api = self.class.do_login
     begin
-      registry = api_instance.registries_get(opts)
+      api.registries_post(registry)
     rescue SwaggerClient::ApiError => e
-      puts "Exception when calling ProductsApi->registries_get: #{e}"
+      puts "Exception when calling ProductsApi->registries_post: #{e}"
     end
-
-    registry[0].id
   end
 
   def description=(_value)
-    api_instance = self.class.do_login
-
-    id = get_registry_id_by_name(resource[:name])
-
     repo_target = SwaggerClient::PutRegistry.new(description: resource[:description])
+    put_registry(repo_target)
+  end
 
+  def put_registry(registry)
+    api_instance = self.class.do_login
+    id = get_registry_id_by_name(resource[:name])
     begin
-      api_instance.registries_id_put(id, repo_target)
+      api_instance.registries_id_put(id, put_registry)
     rescue SwaggerClient::ApiError => e
       puts "Exception when calling ProductsApi->registries_id_put: #{e}"
     end
+  end
+
+  def get_registry_id_by_name(name)
+    registry = get_registry_with_name(name)
+    registry.id
   end
 
   def insecure=(_value)
-    api_instance = self.class.do_login
-
-    id = get_registry_id_by_name(resource[:name])
-
     insecure_bool = cast_to_bool(resource[:insecure].to_s)
-
     repo_target = SwaggerClient::PutRegistry.new(insecure: insecure_bool)
-
-    begin
-      api_instance.registries_id_put(id, repo_target)
-    rescue SwaggerClient::ApiError => e
-      puts "Exception when calling ProductsApi->registries_id_put: #{e}"
-    end
+    put_registry(repo_target)
   end
 
   def url=(_value)
-    api_instance = self.class.do_login
-
-    id = get_registry_id_by_name(resource[:name])
-
     repo_target = SwaggerClient::PutRegistry.new(url: resource[:url])
-
-    begin
-      api_instance.registries_id_put(id, repo_target)
-    rescue SwaggerClient::ApiError => e
-      puts "Exception when calling ProductsApi->registries_id_put: #{e}"
-    end
+    put_registry(repo_target)
   end
 
   def destroy
     api_instance = self.class.do_login
-
     registry_id = get_registry_id_by_name(resource[:name])
 
     begin
