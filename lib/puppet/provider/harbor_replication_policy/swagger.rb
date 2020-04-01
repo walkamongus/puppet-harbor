@@ -191,7 +191,7 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def get_replication_policy_id_by_name(name)
-    policy = get_replication_policy(name)
+    policy = get_replication_policy_with_name(name)
     policy.id
   end
 
