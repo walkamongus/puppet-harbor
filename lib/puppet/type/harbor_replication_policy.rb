@@ -11,7 +11,7 @@ Puppet::Type.newtype(:harbor_replication_policy) do
       enabled          => true,
       override         => false,
       replication_mode => 'pull',
-      remote_registry  => 'UPSTREAM'
+      remote_registry  => 'UPSTREAM',
       filters          => [{'type' => 'name', 'value' => 'exampleproject/**'}, {'type' => 'tag', 'value' => '*'}],
       trigger          => {type => "scheduled", trigger_settings => {cron => "0 0 15 * * *"}},
     }
@@ -39,10 +39,11 @@ DESC
 
   newproperty(:dest_namespace) do
     desc 'The destination namespace'
+    defaultto ''
   end
 
   newproperty(:trigger) do
-    desc 'Trigger type and trigger settings for policy'
+    desc 'Trigger type and trigger settings for policy. type can be "manual", "scheduled", "event_based". "scheduled" requires "trigger_settings" dictionary with "cron" key point to string, e.g. "0 0 15 * * *".'
   end
 
   newproperty(:filters, array_matching: :all) do
@@ -50,14 +51,20 @@ DESC
   end
 
   newproperty(:deletion) do
-    desc 'Whether to replicate the deletion operation'
+    desc 'Whether to replicate the deletion operation. Requires trigger "event_based" in order to enable.'
+    newvalues(:true, :false)
+    defaultto :false
   end
 
   newproperty(:override) do
     desc 'Whether to override the resources on the destination registry'
+    newvalues(:true, :false)
+    defaultto :false
   end
 
   newproperty(:enabled) do
     desc 'Whether the policy is enabled or not'
+    newvalues(:true, :false)
+    defaultto :true
   end
 end
