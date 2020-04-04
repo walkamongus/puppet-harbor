@@ -9,12 +9,12 @@ describe Puppet::Type.type(:harbor_project) do
 
       describe 'when validating attributes' do
         [ :name ].each do |param|
-          it "should have a parameter \"#{param}\"" do
+          it "should have a parameter '#{param}'" do
             expect(described_class.attrtype(param)).to eq(:param)
           end
         end
-        [ :public, :members, :member_groups ].each do |prop|
-          it "should have a property \"#{prop}\"" do
+        [ :ensure, :public, :members, :member_groups ].each do |prop|
+          it "should have a property '#{prop}'" do
             expect(described_class.attrtype(prop)).to eq(:property)
           end
         end
@@ -29,7 +29,7 @@ describe Puppet::Type.type(:harbor_project) do
       describe 'when validating attribute values' do
         describe 'ensure' do
           [ :present, :absent ].each do |value|
-            it "should support \"#{value}\" as a value to \"ensure\"" do
+            it "should support value '#{value}'" do
               expect { described_class.new({
                 :name   => 'the_project',
                 :ensure => value,
@@ -47,7 +47,7 @@ describe Puppet::Type.type(:harbor_project) do
 
         describe "public" do
           [ 'false', 'true' ].each do |value|
-            it "should support '#{value}' as a value for \"public\"" do
+            it "should support value '#{value}'" do
               expect { described_class.new({
                 :name   => 'the_project',
                 :public => value,

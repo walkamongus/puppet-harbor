@@ -6,49 +6,19 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
 
   def self.instances
     api_instance = do_login
-
     projects = api_instance.projects_get
-
-    projects.map do |project|
-      new(
-        ensure: :present,
-        name: project.name,
-        public: project.metadata.public,
-        members: get_project_members(api_instance, project),
-        member_groups: get_project_member_groups(api_instance, project),
-        provider: :swagger,
-      )
-    end
-  end
-
-  def self.get_project_members(api_instance, project)
-    members = api_instance.projects_project_id_members_get(project.project_id)
-    member_arry = []
-    members.each do |member|
-      if member.entity_type == 'u'
-        member_arry << member.entity_name
-      end
-    end
-    member_arry.sort!.delete('admin')
-    member_arry
-  end
-
-  def self.get_project_member_groups(api_instance, project)
-    members = api_instance.projects_project_id_members_get(project.project_id)
-    member_arry = []
-    members.each do |member|
-      if member.entity_type == 'g'
-        member_arry << member.entity_name.downcase!
-      end
-    end
-    member_arry.sort!.delete('admin')
-    member_arry
-  end
-
-  def self.prefetch(resources)
-    instances.each do |int|
-      if (resource = resources[int.name])
-        resource.provider = int
+    if projects.nil?
+      []
+    else
+      projects.map do |project|
+        new(
+          ensure:        :present,
+          name:          project.name,
+          public:        project.metadata.public,
+          members:       get_project_member_names(project.project_id),
+          member_groups: get_project_member_group_names(project.project_id),
+          provider:      :swagger,
+        )
       end
     end
   end
@@ -74,39 +44,68 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     api_instance
   end
 
+  def self.get_project_member_names(project_id)
+    members = get_project_members_with_entity_type(project_id, 'u')
+    names = members.map { |m| m.entity_name }
+    names.sort!.delete('admin')
+    names
+  end
+
+  def self.get_project_members_with_entity_type(project_id, type)
+    api_instance = do_login
+    members_and_groups = api_instance.projects_project_id_members_get(project_id)
+    members_and_groups.select { |m| m.entity_type == type }
+  end
+
+  def self.get_project_member_group_names(project_id)
+    members = get_project_members_with_entity_type(project_id, 'g')
+    names = members.map { |m| m.entity_name.downcase! }
+    names.sort!
+    names
+  end
+
+  def self.prefetch(resources)
+    instances.each do |int|
+      if (resource = resources[int.name])
+        resource.provider = int
+      end
+    end
+  end
+
   def exists?
+    project = get_project_with_name(resource[:name])
+    !project.nil?
+  end
+
+  def get_project_with_name(name)
+    projects = get_projects_containing_name(name)
+    filtered = filter_project_with_name(projects, name)
+    filtered
+  end
+
+  def get_projects_containing_name(name)
+    opts = { name: name }
+    get_projects_with_opts(opts)
+  end
+
+  def filter_project_with_name(all_projects, name)
+    filtered_projects = all_projects.select { |p| p.name == name }
+    filtered_projects.empty? ? nil : filtered_projects[0]
+  end
+
+  def get_projects_with_opts(opts)
     api_instance = self.class.do_login
-
-    opts = {
-      name: resource[:name],
-    }
-
     begin
-      result = api_instance.projects_get(opts)
+      projects = api_instance.projects_get(opts)
+      projects.nil? ? [] : projects
     rescue SwaggerClient::ApiError => e
       puts "Exception when calling ProductsApi->projects_get: #{e}"
-    end
-
-    if result.nil?
-      false
-    end
-
-    result_names = []
-    for r in result
-      result_names << r.name
-    end
-    if result_names.include?(resource[:name])
-      true
-    else
-      false
     end
   end
 
   def create
     api_instance = self.class.do_login
-
     np = SwaggerClient::ProjectReq.new(project_name: resource[:name], metadata: { public: resource[:public] })
-
     begin
       api_instance.projects_post(np)
     rescue SwaggerClient::ApiError => e
@@ -144,187 +143,110 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     end
   end
 
+  def get_project_id_by_name(project_name)
+    project = get_project_with_name(resource[:name])
+    project.project_id
+  end
+
   def members
-    api_instance = self.class.do_login
     id = get_project_id_by_name(resource[:name])
-    members = api_instance.projects_project_id_members_get(id)
-    member_arry = []
-    members.each do |member|
-      if member.entity_type == 'u'
-        member_arry << member.entity_name
-      end
-    end
-    member_arry.sort!.delete('admin')
-    member_arry
+    self.class.get_project_member_names(id)
   end
 
   def members=(_value)
-    do_login
     id = get_project_id_by_name(resource[:name])
-    current_members = get_current_project_members(id)
+    current_members = self.class.get_project_member_names(id)
     members = resource[:members]
-    if current_members != nil?
-      members_to_delete = current_members - members
-      members_to_add = members - current_members
-    end
+
+    members_to_delete = current_members - members
+    members_to_add = members - current_members
+
     remove_members_from_project(id, members_to_delete) unless members_to_delete.empty?
     add_members_to_project(id, members) unless members_to_add.empty?
   end
 
-  def member_groups
+  def remove_members_from_project(project_id, member_names)
     api_instance = self.class.do_login
-    id = get_project_id_by_name(resource[:name])
-    members = api_instance.projects_project_id_members_get(id)
-    member_arry = []
-    members.each do |member|
-      if member.entity_type == 'g'
-        member_arry << member.entity_name.downcase!
-      end
+    member_names.sort!
+    member_names.each do |name|
+      member_id = get_project_member_id_by_name(project_id, name)
+      api_instance.projects_project_id_members_mid_delete(project_id, member_id)
     end
-    member_arry.sort!.delete('admin')
-    member_arry
+  end
+
+  def get_project_member_id_by_name(project_id, name)
+    api_instance = self.class.do_login
+    opts = {
+      entityname: name,
+    }
+    result = api_instance.projects_project_id_members_get(project_id, opts)
+    result[0].id
+  end
+
+  def add_members_to_project(project_id, member_names)
+    member_names.sort!
+    member_names.each do |name|
+      opts = { project_member: { role_id: 2, member_user: { "username": name.to_s } } } # role_id 2 == 'Developer'
+      post_project_members(project_id, opts)
+    end
+  end
+
+  def post_project_members(project_id, opts)
+    api_instance = self.class.do_login
+    begin
+      api_instance.projects_project_id_members_post(project_id, opts)
+    rescue SwaggerClient::ApiError
+      # EWWWWWW dirty hack to avoid 'Conflict' response from API
+    end
+  end
+
+  def member_groups
+    id = get_project_id_by_name(resource[:name])
+    self.class.get_project_member_group_names(id)
   end
 
   def member_groups=(_value)
-    do_login
-    id = get_project_id_by_name(resource[:name])
-    current_member_groups = get_current_project_member_groups(id)
+    project_id = get_project_id_by_name(resource[:name])
+    current_member_groups = self.class.get_project_member_group_names(project_id)
     member_groups = resource[:member_groups]
-    if current_member_groups != nil?
-      member_groups_to_delete = current_member_groups - member_groups
-      member_groups_to_add = member_groups - current_member_groups
-    end
-    remove_member_groups_from_project(id, member_groups_to_delete) unless member_groups_to_delete.empty?
-    add_member_groups_to_project(id, member_groups) unless member_groups_to_add.empty?
+
+    member_groups_to_delete = current_member_groups - member_groups
+    member_groups_to_add = member_groups - current_member_groups
+
+    remove_member_groups_from_project(project_id, member_groups_to_delete) unless member_groups_to_delete.empty?
+    add_member_groups_to_project(project_id, member_groups) unless member_groups_to_add.empty?
   end
 
-
-  def get_project_id_by_name(project_name)
-    api_instance = self.class.do_login
-
-    opts = {
-      name: project_name,
-    }
-
-    projects = api_instance.projects_get(opts)
-    project = projects.select { |n| n.name == project_name }
-    project[0].project_id
+  def remove_member_groups_from_project(project_id, group_names)
+    remove_members_from_project(project_id, group_names)
   end
 
-  def get_current_project_members(id)
-    api_instance = self.class.do_login
-    members = api_instance.projects_project_id_members_get(id)
-    member_arry = []
-    members.each do |member|
-      if member.entity_type == 'u'
-        member_arry << member.entity_name
-      end
-    end
-    member_arry.sort!.delete('admin')
-    member_arry
-  end
-
-  def get_current_project_member_groups(id)
-    api_instance = self.class.do_login
-    members = api_instance.projects_project_id_members_get(id)
-    member_arry = []
-    members.each do |member|
-      if member.entity_type == 'g'
-        member_arry << member.entity_name
-      end
-    end
-    member_arry.sort!.delete('admin')
-    member_arry
-  end
-
-  def add_members_to_project(id, members)
-    api_instance = self.class.do_login
-
-    members.sort!
-    members.each do |member|
-      opts = { project_member: { role_id: 2, member_user: { "username": member.to_s } } } # role_id 2 == 'Developer'
-      begin
-        api_instance.projects_project_id_members_post(id, opts)
-      rescue SwaggerClient::ApiError
-        # EWWWWWW dirty hack to avoid 'Conflict' response from API
-      end
-    end
-  end
-
-  def add_member_groups_to_project(id, member_groups)
-    api_instance = self.class.do_login
-
-    member_groups.sort!
-    member_groups.each do |group|
-      gid = get_usergroup_id_by_name(group)
+  def add_member_groups_to_project(project_id, member_group_names)
+    member_group_names.sort!
+    member_group_names.each do |name|
+      gid = get_usergroup_id_by_name(name)
       opts = { project_member: { role_id: 2, member_group: { "id": gid } } } # role_id 2 == 'Developer'
-      begin
-        api_instance.projects_project_id_members_post(id, opts)
-      rescue SwaggerClient::ApiError
-        # EWWWWWW dirty hack to avoid 'Conflict' response from API
-      end
+      post_project_members(project_id, opts)
     end
   end
 
-  def get_usergroup_id_by_name(group)
+  def get_usergroup_id_by_name(name)
     api_instance = self.class.do_login
-
-    ug = api_instance.usergroups_get()
-    group.downcase!
-    x = ug.select { |g| g.group_name.downcase! == group }
+    all_groups = api_instance.usergroups_get()
+    name.downcase!
+    x = all_groups.select { |g| g.group_name.downcase! == name }
     x[0].id
   end
 
-  def remove_members_from_project(id, members_to_delete)
-    api_instance = self.class.do_login
-
-    members_to_delete.sort!
-    members_to_delete.each do |member|
-      mid = get_project_member_id_by_name(id, member)
-      api_instance.projects_project_id_members_mid_delete(id, mid)
-    end
-  end
-
-  def remove_member_groups_from_project(id, member_groups_to_delete)
-    api_instance = self.class.do_login
-
-    member_groups_to_delete.sort!
-    member_groups_to_delete.each do |member_group|
-      mid = get_project_member_id_by_name(id, member_group)
-      api_instance.projects_project_id_members_mid_delete(id, mid)
-    end
-  end
-
-  def get_project_member_id_by_name(id, member)
-    api_instance = self.class.do_login
-
-    opts = {
-      entityname: member,
-    }
-    result = api_instance.projects_project_id_members_get(id, opts)
-    mid = result[0].id
-    mid
-  end
-
   def destroy
+    project = get_project_with_name(resource[:name])
+    delete_project_with_id(project.project_id)
+  end
+
+  def delete_project_with_id(id)
     api_instance = self.class.do_login
-
-    opts = {
-      name: resource[:name],
-    }
-
     begin
-      result = api_instance.projects_get(opts)
-    rescue SwaggerClient::ApiError => e
-      puts "Exception when calling ProductsApi->projects_get: #{e}"
-    end
-
-    return nil unless result
-
-    project_id = result[0].project_id
-
-    begin
-      api_instance.projects_project_id_delete(project_id)
+      api_instance.projects_project_id_delete(id)
     rescue SwaggerClient::ApiError => e
       puts "Exception when calling ProductsApi->projects_project_id_delete: #{e}"
     end
