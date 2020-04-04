@@ -31,8 +31,8 @@ DESC
 
   newparam(:set_credential) do
     desc 'Whether to set the credential for the registry'
-    defaultto :false
     newvalues(:true, :false)
+    defaultto :false
   end
 
   newparam(:access_key) do
@@ -45,7 +45,12 @@ DESC
 
   newproperty(:insecure) do
     desc 'Whether or not the certificate will be verified when Harbor tries to access the server'
-    defaultto :false
     newvalues(:true, :false)
+    defaultto :false
+  end
+
+  newparam(:type) do
+    desc 'Type of the registry, e.g. "harbor", "gitlab".'
+    defaultto 'harbor'
   end
 end
