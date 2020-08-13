@@ -42,6 +42,7 @@ class harbor::install (
     # prevent the docker::image resource from executing each puppet run.
     # goharbor/harbor-log exists in both the 1.6.x and 1.7.x releases.
     docker::image { 'goharbor/harbor-log':
+      image_tag  => "v${version}",
       docker_tar => '/opt/harbor/harbor*.tar.gz',
       subscribe  => File['/opt/harbor'],
     }

@@ -19,7 +19,7 @@ class harbor::backup (
     command   => "tar -cvzf ${backup_directory}/harbor_v${version}_db_backup.tar.gz ${data_volume}/database",
     creates   => "${backup_directory}/harbor_v${version}_db_backup.tar.gz",
     logoutput => true,
-    requires  => Exec['stop_harbor'],
+    require   => Exec['stop_harbor'],
   }
 
 }

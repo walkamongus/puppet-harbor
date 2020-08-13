@@ -263,7 +263,7 @@ class harbor (
         class { 'harbor::backup':
           version        => $_running_version,
           data_volume    => $data_volume,
-          back_directory => $backup_directory,
+          backup_directory => $backup_directory,
           before         => Class['harbor::install'],
         }
         contain 'harbor::backup'
