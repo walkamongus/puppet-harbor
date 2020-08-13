@@ -162,7 +162,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     members_to_add = members - current_members
 
     remove_members_from_project(id, members_to_delete) unless members_to_delete.empty?
-    add_members_to_project(id, members) unless members_to_add.empty?
+    add_members_to_project(id, members_to_add) unless members_to_add.empty?
   end
 
   def remove_members_from_project(project_id, member_names)
@@ -214,7 +214,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     member_groups_to_add = member_groups - current_member_groups
 
     remove_member_groups_from_project(project_id, member_groups_to_delete) unless member_groups_to_delete.empty?
-    add_member_groups_to_project(project_id, member_groups) unless member_groups_to_add.empty?
+    add_member_groups_to_project(project_id, member_groups_to_add) unless member_groups_to_add.empty?
   end
 
   def remove_member_groups_from_project(project_id, group_names)
