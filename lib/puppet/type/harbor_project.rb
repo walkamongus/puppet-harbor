@@ -34,7 +34,6 @@ DESC
 
   newproperty(:member_groups, array_matching: :all) do
     desc 'An array of member groups for the project'
-    munge { |value| value.downcase }
     def insync?(is)
       is.sort == should.sort
     end
