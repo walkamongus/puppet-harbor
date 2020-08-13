@@ -29,6 +29,7 @@ class harbor::prepare (
   exec { 'prepare_harbor':
     cwd         => '/opt/harbor',
     command     => "/opt/harbor/prepare ${opts}",
+    timeout     => 0,
     logoutput   => true,
     refreshonly => true,
   }
