@@ -13,7 +13,7 @@ describe Puppet::Type.type(:harbor_project) do
             expect(described_class.attrtype(param)).to eq(:param)
           end
         end
-        [ :ensure, :public, :members, :member_groups ].each do |prop|
+        [ :ensure, :public, :members, :member_groups, :auto_scan ].each do |prop|
           it "should have a property '#{prop}'" do
             expect(described_class.attrtype(prop)).to eq(:property)
           end
@@ -46,8 +46,8 @@ describe Puppet::Type.type(:harbor_project) do
         end
 
         describe "public" do
-          [ 'false', 'true' ].each do |value|
-            it "should support value '#{value}'" do
+          [ :false, :true ].each do |value|
+            it "should support value: #{value}" do
               expect { described_class.new({
                 :name   => 'the_project',
                 :public => value,
@@ -55,7 +55,7 @@ describe Puppet::Type.type(:harbor_project) do
             end
           end
 
-          it "should default to false" do
+          it "should default to :false" do
             expect(described_class.new({
               :name => 'the_project'
             })[:public]).to eq :false
@@ -66,6 +66,52 @@ describe Puppet::Type.type(:harbor_project) do
               :name   => 'the_project',
               :public => 'other_value',
             })}.to raise_error(Puppet::Error, /Invalid value/)
+          end
+        end
+
+        describe "auto_scan" do
+          [ :false, :true ].each do |value|
+            it "should support value: #{value}" do
+              expect { described_class.new({
+                :name      => 'the_project',
+                :auto_scan => value,
+              }) }.to_not raise_error
+            end
+          end
+
+          it "should default to :false" do
+            expect(described_class.new({
+              :name => 'the_project'
+            })[:auto_scan]).to eq :false
+          end
+
+          it "should not support other values" do
+            expect { described_class.new({
+              :name      => 'the_project',
+              :auto_scan => 'other_value',
+            })}.to raise_error(Puppet::Error, /Invalid value/)
+          end
+        end
+
+        describe "members" do
+          [ [], ['a_name'], ['a_name', 'another_name']].each do |value|
+            it "should support array of string values: #{value}" do
+              expect { described_class.new({
+                :name    => 'the_project',
+                :members => value,
+              }) }.to_not raise_error
+            end
+          end
+        end
+
+        describe "member_groups" do
+          [ [], ['a_group'], ['a_group', 'another_group']].each do |value|
+            it "should support array of string values: #{value}" do
+              expect { described_class.new({
+                :name          => 'the_project',
+                :member_groups => value,
+              }) }.to_not raise_error
+            end
           end
         end
       end
