@@ -59,7 +59,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
 
   def self.get_project_member_group_names(project_id)
     members = get_project_members_with_entity_type(project_id, 'g')
-    names = members.map { |m| m.entity_name.downcase! }
+    names = members.map { |m| m.entity_name.downcase }
     names.sort!
     names
   end
@@ -233,8 +233,8 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   def get_usergroup_id_by_name(name)
     api_instance = self.class.do_login
     all_groups = api_instance.usergroups_get()
-    name.downcase!
-    x = all_groups.select { |g| g.group_name.downcase! == name }
+    name = name.downcase
+    x = all_groups.select { |g| g.group_name.downcase == name }
     x[0].id
   end
 
