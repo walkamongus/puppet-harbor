@@ -25,6 +25,12 @@ DESC
     newvalues(:true, :false)
   end
 
+  newproperty(:auto_scan) do
+    desc 'Whether to scan images automatically for vulnerabilities when pushing.'
+    newvalues(:true, :false)
+    defaultto :false
+  end
+
   newproperty(:members, array_matching: :all) do
     desc 'An array of members for the project'
     def insync?(is)

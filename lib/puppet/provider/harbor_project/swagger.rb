@@ -15,6 +15,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
           ensure:        :present,
           name:          project.name,
           public:        project.metadata.public,
+          auto_scan:     project.metadata.auto_scan.nil? ? :false : project.metadata.auto_scan.to_sym,
           members:       get_project_member_names(project.project_id),
           member_groups: get_project_member_group_names(project.project_id),
           provider:      :swagger,
@@ -105,7 +106,13 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
 
   def create
     api_instance = self.class.do_login
-    np = SwaggerClient::ProjectReq.new(project_name: resource[:name], metadata: { public: resource[:public] })
+    np = SwaggerClient::ProjectReq.new(
+      project_name: resource[:name],
+      metadata: {
+        public:    resource[:public],
+        auto_scan: resource[:auto_scan].to_s,
+      }
+    )
     begin
       api_instance.projects_post(np)
     rescue SwaggerClient::ApiError => e
@@ -125,27 +132,37 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     end
   end
 
+  def get_project_id_by_name(project_name)
+    project = get_project_with_name(resource[:name])
+    project.project_id
+  end
+
   def public=(_value)
-    api_instance = self.class.do_login
-
-    id = get_project_id_by_name(resource[:name])
-
     project = {
       "metadata": {
         "public": resource[:public],
       }
     }
+    put_project(project)
+  end
 
+  def put_project(project_hash)
+    api_instance = self.class.do_login
+    id = get_project_id_by_name(resource[:name])
     begin
-      api_instance.projects_project_id_put(id, project, opts = {})
+      api_instance.projects_project_id_put(id, project_hash, opts = {})
     rescue SwaggerClient::ApiError => e
       puts "Exception when calling ProductsApi->projects_project_id_put: #{e}"
     end
   end
 
-  def get_project_id_by_name(project_name)
-    project = get_project_with_name(resource[:name])
-    project.project_id
+  def auto_scan=(_value)
+    project = {
+      "metadata": {
+        "auto_scan": resource[:auto_scan].to_s,
+      }
+    }
+    put_project(project)
   end
 
   def members
