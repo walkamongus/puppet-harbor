@@ -59,7 +59,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
 
   def self.get_project_member_group_names(project_id)
     members = get_project_members_with_entity_type(project_id, 'g')
-    names = members.map { |m| m.entity_name.downcase! }
+    names = members.map { |m| m.entity_name }
     names.sort!
     names
   end
@@ -162,7 +162,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     members_to_add = members - current_members
 
     remove_members_from_project(id, members_to_delete) unless members_to_delete.empty?
-    add_members_to_project(id, members) unless members_to_add.empty?
+    add_members_to_project(id, members_to_add) unless members_to_add.empty?
   end
 
   def remove_members_from_project(project_id, member_names)
@@ -195,8 +195,8 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     api_instance = self.class.do_login
     begin
       api_instance.projects_project_id_members_post(project_id, opts)
-    rescue SwaggerClient::ApiError
-      # EWWWWWW dirty hack to avoid 'Conflict' response from API
+    rescue SwaggerClient::ApiError => e
+      puts "Exception when calling ProductsApi->projects_project_id_members_post: #{e}"
     end
   end
 
@@ -214,7 +214,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     member_groups_to_add = member_groups - current_member_groups
 
     remove_member_groups_from_project(project_id, member_groups_to_delete) unless member_groups_to_delete.empty?
-    add_member_groups_to_project(project_id, member_groups) unless member_groups_to_add.empty?
+    add_member_groups_to_project(project_id, member_groups_to_add) unless member_groups_to_add.empty?
   end
 
   def remove_member_groups_from_project(project_id, group_names)
@@ -233,8 +233,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   def get_usergroup_id_by_name(name)
     api_instance = self.class.do_login
     all_groups = api_instance.usergroups_get()
-    name.downcase!
-    x = all_groups.select { |g| g.group_name.downcase! == name }
+    x = all_groups.select { |g| g.group_name == name }
     x[0].id
   end
 
