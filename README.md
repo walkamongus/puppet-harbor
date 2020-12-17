@@ -39,7 +39,9 @@ Include usage examples for common use cases in the **Usage** section. Show your 
 
 This module comes with types and providers to manage harbor user setttings (https://github.com/goharbor/harbor/blob/master/docs/configure_user_settings.md#harbor-user-settings) and harbor projects via Harbor's swagger API.
 
-To use these features you must install the harbor-swagger-client gem (https://github.com/bt-lemery/harbor-swagger-client) and create the file '/etc/puppetlabs/swagger.yaml' on your Harbor server with the following (minimum) content:
+To use these features with Harbor v1.x, you must install the [harbor1_client gem](https://rubygems.org/gems/harbor1_client). To use these features with Harbor v2.x, you must install the [harbor2_client gem](https://rubygems.org/gems/harbor2_client) and the [harbor2_legacy_client_gem](https://rubygems.org/gems/harbor2_legacy_client).
+
+You must also create the file '/etc/puppetlabs/swagger.yaml' on your Harbor server with the following (minimum) content:
 
 ```
 ---
@@ -56,6 +58,11 @@ If using Harbor with a self-signed SSL certificate you should also include:
 ```
 verify_ssl: false
 verify_ssl_host: false
+```
+
+If using Harbor v2.x, you should also include:
+```
+api_version: 2
 ```
 
 ### User settings

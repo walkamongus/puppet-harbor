@@ -6,29 +6,66 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def do_login
     require 'yaml'
-    require 'harbor_swagger_client'
     my_config = YAML.load_file('/etc/puppetlabs/swagger.yaml')
-
-    SwaggerClient.configure do |config|
-      config.username = my_config['username']
-      config.password = my_config['password']
-      config.scheme = my_config['scheme']
-      config.verify_ssl = my_config['verify_ssl']
-      config.verify_ssl_host = my_config['verify_ssl_host']
-      config.ssl_ca_cert = my_config['ssl_ca_cert']
-      if my_config['host']
-        config.host = my_config['host']
+    require 'harbor2_client'
+    require 'harbor2_legacy_client'
+    require 'harbor1_client'
+    if my_config.fetch('api_version', 1) == 2
+      Harbor2Client.configure do |config|
+        config.username = my_config['username']
+        config.password = my_config['password']
+        config.scheme = my_config['scheme']
+        config.verify_ssl = my_config['verify_ssl']
+        config.verify_ssl_host = my_config['verify_ssl_host']
+        config.ssl_ca_cert = my_config['ssl_ca_cert']
+        if my_config['host']
+          config.host = my_config['host']
+        end
       end
+      Harbor2LegacyClient.configure do |config|
+        config.username = my_config['username']
+        config.password = my_config['password']
+        config.scheme = my_config['scheme']
+        config.verify_ssl = my_config['verify_ssl']
+        config.verify_ssl_host = my_config['verify_ssl_host']
+        config.ssl_ca_cert = my_config['ssl_ca_cert']
+        if my_config['host']
+          config.host = my_config['host']
+        end
+      end
+      api_instance = {
+        :api_version => 2,
+        :client => Harbor2Client::ProjectApi.new,
+        :legacy_client => Harbor2LegacyClient::ProductsApi.new
+      }
+    else
+      Harbor1Client.configure do |config|
+        config.username = my_config['username']
+        config.password = my_config['password']
+        config.scheme = my_config['scheme']
+        config.verify_ssl = my_config['verify_ssl']
+        config.verify_ssl_host = my_config['verify_ssl_host']
+        config.ssl_ca_cert = my_config['ssl_ca_cert']
+        if my_config['host']
+          config.host = my_config['host']
+        end
+      end
+      client = Harbor1Client::ProductsApi.new
+      api_instance = {
+        :api_version => 1,
+        :client => client,
+        :legacy_client => client
+      }
     end
-
-    api_instance = SwaggerClient::ProductsApi.new
     api_instance
   end
 
   def get_config(api_instance)
     begin
-      config = api_instance.configurations_get
-    rescue SwaggerClient::ApiError => e
+      config = api_instance[:legacy_client].configurations_get
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_get: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_get: #{e}"
     end
     config
@@ -48,8 +85,10 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     }
 
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for auth_mode: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for auth_mode: #{e}"
     end
   end
@@ -62,14 +101,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def email_from=(_value)
     api_instance = do_login
-
     configurations = {
       "email_from": resource[:email_from],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for email_from: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for email_from: #{e}"
     end
   end
@@ -82,14 +121,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def email_host=(_value)
     api_instance = do_login
-
     configurations = {
       "email_host": resource[:email_host],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for email_host: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for email_host: #{e}"
     end
   end
@@ -102,14 +141,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def email_port=(_value)
     api_instance = do_login
-
     configurations = {
       "email_port": resource[:email_port],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for email_port: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for email_port: #{e}"
     end
   end
@@ -122,14 +161,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def email_identity=(_value)
     api_instance = do_login
-
     configurations = {
       "email_identity": resource[:email_identity],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for email_identity: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for email_identity: #{e}"
     end
   end
@@ -142,14 +181,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def email_username=(_value)
     api_instance = do_login
-
     configurations = {
       "email_username": resource[:email_username],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for email_username: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for email_username: #{e}"
     end
   end
@@ -162,14 +201,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def email_ssl=(_value)
     api_instance = do_login
-
     configurations = {
       "email_ssl": resource[:email_ssl],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for email_ssl: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for email_ssl: #{e}"
     end
   end
@@ -182,14 +221,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def email_insecure=(_value)
     api_instance = do_login
-
     configurations = {
       "email_insecure": resource[:email_insecure],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for email_insecure: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for email_insecure: #{e}"
     end
   end
@@ -202,14 +241,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def ldap_url=(_value)
     api_instance = do_login
-
     configurations = {
       "ldap_url": resource[:ldap_url],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for ldap_url: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for ldap_url: #{e}"
     end
   end
@@ -222,14 +261,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def ldap_base_dn=(_value)
     api_instance = do_login
-
     configurations = {
       "ldap_base_dn": resource[:ldap_base_dn],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for ldap_base_dn: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for ldap_base_dn: #{e}"
     end
   end
@@ -242,14 +281,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def ldap_filter=(_value)
     api_instance = do_login
-
     configurations = {
       "ldap_filter": resource[:ldap_filter],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for ldap_filter: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for ldap_filter: #{e}"
     end
   end
@@ -262,14 +301,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def ldap_scope=(_value)
     api_instance = do_login
-
     configurations = {
       "ldap_scope": resource[:ldap_scope],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for ldap_scope: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for ldap_scope: #{e}"
     end
   end
@@ -282,14 +321,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def ldap_uid=(_value)
     api_instance = do_login
-
     configurations = {
       "ldap_uid": resource[:ldap_uid],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for ldap_uid: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for ldap_uid: #{e}"
     end
   end
@@ -302,14 +341,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def ldap_search_dn=(_value)
     api_instance = do_login
-
     configurations = {
       "ldap_search_dn": resource[:ldap_search_dn],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for ldap_search_dn: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for ldap_search_dn: #{e}"
     end
   end
@@ -322,14 +361,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def ldap_timeout=(_value)
     api_instance = do_login
-
     configurations = {
       "ldap_timeout": resource[:ldap_timeout],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for ldap_timeout: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for ldap_timeout: #{e}"
     end
   end
@@ -342,14 +381,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def ldap_group_attribute_name=(_value)
     api_instance = do_login
-
     configurations = {
       "ldap_group_attribute_name": resource[:ldap_group_attribute_name],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for ldap_group_attribute_name: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for ldap_group_attribute_name: #{e}"
     end
   end
@@ -362,14 +401,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def ldap_group_base_dn=(_value)
     api_instance = do_login
-
     configurations = {
       "ldap_group_base_dn": resource[:ldap_group_base_dn],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for ldap_group_base_dn: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for ldap_group_base_dn: #{e}"
     end
   end
@@ -382,14 +421,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def ldap_group_search_filter=(_value)
     api_instance = do_login
-
     configurations = {
       "ldap_group_search_filter": resource[:ldap_group_search_filter],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for ldap_group_search_filter: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for ldap_group_search_filter: #{e}"
     end
   end
@@ -402,14 +441,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def ldap_group_search_scope=(_value)
     api_instance = do_login
-
     configurations = {
       "ldap_group_search_scope": resource[:ldap_group_search_scope],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for ldap_group_search_scope: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for ldap_group_search_scope: #{e}"
     end
   end
@@ -422,14 +461,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def ldap_group_admin_dn=(_value)
     api_instance = do_login
-
     configurations = {
       "ldap_group_admin_dn": resource[:ldap_group_admin_dn],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for ldap_group_admin_dn: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for ldap_group_admin_dn: #{e}"
     end
   end
@@ -442,15 +481,15 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def project_creation_restriction=(_value)
     api_instance = do_login
-
     configurations = {
       "project_creation_restriction": resource[:project_creation_restriction],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
-      puts "Exception when calling ProductsApi->configurations_put for projection_creation_restriction: #{e}"
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for project_creation_restriction: #{e}"
+    rescue Harbor1Client::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for project_creation_restriction: #{e}"
     end
   end
 
@@ -462,14 +501,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def read_only=(_value)
     api_instance = do_login
-
     configurations = {
       "read_only": resource[:read_only],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for read_only: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for read_only: #{e}"
     end
   end
@@ -482,14 +521,14 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def self_registration=(_value)
     api_instance = do_login
-
     configurations = {
       "self_registration": resource[:self_registration],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for self_registration: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for self_registration: #{e}"
     end
   end
@@ -502,15 +541,16 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
 
   def token_expiration=(_value)
     api_instance = do_login
-
     configurations = {
       "token_expiration": resource[:token_expiration],
     }
-
     begin
-      api_instance.configurations_put(configurations)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].configurations_put(configurations)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->configurations_put for token_expiration: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->configurations_put for token_expiration: #{e}"
     end
   end
+
 end
