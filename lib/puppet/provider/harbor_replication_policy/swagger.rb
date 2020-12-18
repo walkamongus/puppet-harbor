@@ -26,7 +26,7 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
 
   def self.get_all_policies
     api_instance = do_login
-    api_instance.replication_policies_get
+    api_instance[:legacy_client].replication_policies_get
   end
 
   def self.cast_bool_to_symbol(foo)
@@ -59,22 +59,57 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
 
   def self.do_login
     require 'yaml'
-    require 'harbor_swagger_client'
     my_config = YAML.load_file('/etc/puppetlabs/swagger.yaml')
-
-    SwaggerClient.configure do |config|
-      config.username = my_config['username']
-      config.password = my_config['password']
-      config.scheme = my_config['scheme']
-      config.verify_ssl = my_config['verify_ssl']
-      config.verify_ssl_host = my_config['verify_ssl_host']
-      config.ssl_ca_cert = my_config['ssl_ca_cert']
-      if my_config['host']
-        config.host = my_config['host']
+    require 'harbor2_client'
+    require 'harbor2_legacy_client'
+    require 'harbor1_client'
+    if my_config.fetch('api_version', 1) == 2
+      Harbor2Client.configure do |config|
+        config.username = my_config['username']
+        config.password = my_config['password']
+        config.scheme = my_config['scheme']
+        config.verify_ssl = my_config['verify_ssl']
+        config.verify_ssl_host = my_config['verify_ssl_host']
+        config.ssl_ca_cert = my_config['ssl_ca_cert']
+        if my_config['host']
+          config.host = my_config['host']
+        end
       end
+      Harbor2LegacyClient.configure do |config|
+        config.username = my_config['username']
+        config.password = my_config['password']
+        config.scheme = my_config['scheme']
+        config.verify_ssl = my_config['verify_ssl']
+        config.verify_ssl_host = my_config['verify_ssl_host']
+        config.ssl_ca_cert = my_config['ssl_ca_cert']
+        if my_config['host']
+          config.host = my_config['host']
+        end
+      end
+      api_instance = {
+        :api_version => 2,
+        :client => Harbor2Client::ProjectApi.new,
+        :legacy_client => Harbor2LegacyClient::ProductsApi.new
+      }
+    else
+      Harbor1Client.configure do |config|
+        config.username = my_config['username']
+        config.password = my_config['password']
+        config.scheme = my_config['scheme']
+        config.verify_ssl = my_config['verify_ssl']
+        config.verify_ssl_host = my_config['verify_ssl_host']
+        config.ssl_ca_cert = my_config['ssl_ca_cert']
+        if my_config['host']
+          config.host = my_config['host']
+        end
+      end
+      client = Harbor1Client::ProductsApi.new
+      api_instance = {
+        :api_version => 1,
+        :client => client,
+        :legacy_client => client
+      }
     end
-
-    api_instance = SwaggerClient::ProductsApi.new
     api_instance
   end
 
@@ -96,10 +131,12 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def get_policies_with_opts(opts)
-    api_instance =  self.class.do_login
+    api_instance self.class.do_login
     begin
-      api_instance.replication_policies_get(opts)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].replication_policies_get(opts)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->replication_policies_get: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->replication_policies_get: #{e}"
     end
   end
@@ -132,12 +169,14 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def get_registry_info_by_name(registry_name)
-    api_instance =  self.class.do_login
+    api_instance = self.class.do_login
     opts = { name: registry_name }
 
     begin
-      registries = api_instance.registries_get(opts)
-    rescue SwaggerClient::ApiError => e
+      registries = api_instance[:legacy_client].registries_get(opts)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->registries_get: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->registries_get: #{e}"
     end
 
@@ -163,10 +202,12 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def post_replication_policy(policy)
-    api_instance =  self.class.do_login
+    api_instance = self.class.do_login
     begin
-      api_instance.replication_policies_post(policy)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].replication_policies_post(policy)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->replication_policies_post: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->replication_policies_post: #{e}"
     end
   end
@@ -182,10 +223,12 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
 
   def put_replication_policy(policy)
     id = get_replication_policy_id_by_name(policy.name)
-    api_instance =  self.class.do_login
+    api_instance = self.class.do_login
     begin
-      api_instance.replication_policies_id_put(id, policy)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].replication_policies_id_put(id, policy)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->replication_policies_id_put: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->replication_policies_id_put: #{e}"
     end
   end
@@ -196,11 +239,13 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def destroy
-    api_instance =  self.class.do_login
+    api_instance = self.class.do_login
     id = get_replication_policy_id_by_name(resource[:name])
     begin
-      api_instance.replication_policies_id_delete(id)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].replication_policies_id_delete(id)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->replication_policy_id_delete: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->replication_policy_id_delete: #{e}"
     end
   end

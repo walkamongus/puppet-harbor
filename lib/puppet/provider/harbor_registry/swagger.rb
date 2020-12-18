@@ -6,7 +6,7 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
 
   def self.instances
     api_instance = do_login
-    registries = api_instance.registries_get
+    registries = api_instance[:legacy_client].registries_get
     if registries.nil?
       []
     else
@@ -37,22 +37,57 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
 
   def self.do_login
     require 'yaml'
-    require 'harbor_swagger_client'
     my_config = YAML.load_file('/etc/puppetlabs/swagger.yaml')
-
-    SwaggerClient.configure do |config|
-      config.username = my_config['username']
-      config.password = my_config['password']
-      config.scheme = my_config['scheme']
-      config.verify_ssl = my_config['verify_ssl']
-      config.verify_ssl_host = my_config['verify_ssl_host']
-      config.ssl_ca_cert = my_config['ssl_ca_cert']
-      if my_config['host']
-        config.host = my_config['host']
+    require 'harbor2_client'
+    require 'harbor2_legacy_client'
+    require 'harbor1_client'
+    if my_config.fetch('api_version', 1) == 2
+      Harbor2Client.configure do |config|
+        config.username = my_config['username']
+        config.password = my_config['password']
+        config.scheme = my_config['scheme']
+        config.verify_ssl = my_config['verify_ssl']
+        config.verify_ssl_host = my_config['verify_ssl_host']
+        config.ssl_ca_cert = my_config['ssl_ca_cert']
+        if my_config['host']
+          config.host = my_config['host']
+        end
       end
+      Harbor2LegacyClient.configure do |config|
+        config.username = my_config['username']
+        config.password = my_config['password']
+        config.scheme = my_config['scheme']
+        config.verify_ssl = my_config['verify_ssl']
+        config.verify_ssl_host = my_config['verify_ssl_host']
+        config.ssl_ca_cert = my_config['ssl_ca_cert']
+        if my_config['host']
+          config.host = my_config['host']
+        end
+      end
+      api_instance = {
+        :api_version => 2,
+        :client => Harbor2Client::ProjectApi.new,
+        :legacy_client => Harbor2LegacyClient::ProductsApi.new
+      }
+    else
+      Harbor1Client.configure do |config|
+        config.username = my_config['username']
+        config.password = my_config['password']
+        config.scheme = my_config['scheme']
+        config.verify_ssl = my_config['verify_ssl']
+        config.verify_ssl_host = my_config['verify_ssl_host']
+        config.ssl_ca_cert = my_config['ssl_ca_cert']
+        if my_config['host']
+          config.host = my_config['host']
+        end
+      end
+      client = Harbor1Client::ProductsApi.new
+      api_instance = {
+        :api_version => 1,
+        :client => client,
+        :legacy_client => client
+      }
     end
-
-    api_instance = SwaggerClient::ProductsApi.new
     api_instance
   end
 
@@ -70,9 +105,11 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
     opts = { name: name }
     api_instance = self.class.do_login
     begin
-      registries = api_instance.registries_get(opts)
+      registries = api_instance[:legacy_client].registries_get(opts)
       registries.nil? ? [] : registries
-    rescue SwaggerClient::ApiError => e
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->registries_get: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->registries_get: #{e}"
     end
   end
@@ -83,21 +120,39 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
   end
 
   def create
-    nr = SwaggerClient::Registry.new(
-      name:       resource[:name],
-      url:        resource[:url],
-      type:       resource[:type],
-      insecure:   cast_symbol_to_bool(resource[:insecure]),
-      credential: create_credential)
+    api_instance = self.class.do_login
+    if api_instance[:api_version] == 2
+      nr = Harbor2LegacyClient::Registry.new(
+        name:       resource[:name],
+        url:        resource[:url],
+        type:       resource[:type],
+        insecure:   cast_symbol_to_bool(resource[:insecure]),
+        credential: create_credential)
+    else
+      nr = Harbor1Client::Registry.new(
+        name:       resource[:name],
+        url:        resource[:url],
+        type:       resource[:type],
+        insecure:   cast_symbol_to_bool(resource[:insecure]),
+        credential: create_credential)
+    end
     post_registry(nr)
   end
 
   def create_credential
+    api_instance = self.class.do_login
     if cast_symbol_to_bool(resource[:set_credential])
-      SwaggerClient::RegistryCredential.new(
-        type:          'basic',
-        access_key:    resource[:access_key],
-        access_secret: resource[:access_secret])
+      if api_instance[:api_version] == 2
+        Harbor2LegacyClient::RegistryCredential.new(
+          type:          'basic',
+          access_key:    resource[:access_key],
+          access_secret: resource[:access_secret])
+      else
+        Harbor1Client::RegistryCredential.new(
+          type:          'basic',
+          access_key:    resource[:access_key],
+          access_secret: resource[:access_secret])
+      end
     else
       nil
     end
@@ -113,16 +168,23 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
   end
 
   def post_registry(registry)
-    api = self.class.do_login
+    api_instance = self.class.do_login
     begin
-      api.registries_post(registry)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].registries_post(registry)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->registries_post: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->registries_post: #{e}"
     end
   end
 
   def description=(_value)
-    repo_target = SwaggerClient::PutRegistry.new(description: resource[:description])
+    api_instance = self.class.do_login
+    if api_instance[:api_version] == 2
+      repo_target = Harbor2LegacyClient::PutRegistry.new(description: resource[:description])
+    else
+      repo_target = Harbor1Client::PutRegistry.new(description: resource[:description])
+    end
     put_registry(repo_target)
   end
 
@@ -130,8 +192,10 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
     api_instance = self.class.do_login
     id = get_registry_id_by_name(resource[:name])
     begin
-      api_instance.registries_id_put(id, put_registry)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].registries_id_put(id, put_registry)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->registries_id_put: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->registries_id_put: #{e}"
     end
   end
@@ -142,13 +206,23 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
   end
 
   def insecure=(_value)
+    api_instance = self.class.do_login
     insecure_bool = cast_to_bool(resource[:insecure].to_s)
-    repo_target = SwaggerClient::PutRegistry.new(insecure: insecure_bool)
+    if api_instance[:api_version] == 2
+      repo_target = Harbor2LegacyClient::PutRegistry.new(insecure: insecure_bool)
+    else
+      repo_target = Harbor1Client::PutRegistry.new(insecure: insecure_bool)
+    end
     put_registry(repo_target)
   end
 
   def url=(_value)
-    repo_target = SwaggerClient::PutRegistry.new(url: resource[:url])
+    api_instance = self.class.do_login
+    if api_instance[:api_version] == 2
+      repo_target = Harbor2LegacyClient::PutRegistry.new(url: resource[:url])
+    else
+      repo_target = Harbor1Client::PutRegistry.new(url: resource[:url])
+    end
     put_registry(repo_target)
   end
 
@@ -157,8 +231,10 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
     registry_id = get_registry_id_by_name(resource[:name])
 
     begin
-      api_instance.registries_id_delete(registry_id)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].registries_id_delete(registry_id)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->registries_id_delete: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->registries_id_delete: #{e}"
     end
   end

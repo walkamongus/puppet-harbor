@@ -6,7 +6,11 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
 
   def self.instances
     api_instance = do_login
-    projects = api_instance.projects_get
+    if api_instance[:api_version] == 2
+      projects = api_instance[:client].list_projects
+    else
+      projects = api_instance[:client].projects_get
+    end
     if projects.nil?
       []
     else
@@ -26,22 +30,57 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
 
   def self.do_login
     require 'yaml'
-    require 'harbor_swagger_client'
     my_config = YAML.load_file('/etc/puppetlabs/swagger.yaml')
-
-    SwaggerClient.configure do |config|
-      config.username = my_config['username']
-      config.password = my_config['password']
-      config.scheme = my_config['scheme']
-      config.verify_ssl = my_config['verify_ssl']
-      config.verify_ssl_host = my_config['verify_ssl_host']
-      config.ssl_ca_cert = my_config['ssl_ca_cert']
-      if my_config['host']
-        config.host = my_config['host']
+    require 'harbor2_client'
+    require 'harbor2_legacy_client'
+    require 'harbor1_client'
+    if my_config.fetch('api_version', 1) == 2
+      Harbor2Client.configure do |config|
+        config.username = my_config['username']
+        config.password = my_config['password']
+        config.scheme = my_config['scheme']
+        config.verify_ssl = my_config['verify_ssl']
+        config.verify_ssl_host = my_config['verify_ssl_host']
+        config.ssl_ca_cert = my_config['ssl_ca_cert']
+        if my_config['host']
+          config.host = my_config['host']
+        end
       end
+      Harbor2LegacyClient.configure do |config|
+        config.username = my_config['username']
+        config.password = my_config['password']
+        config.scheme = my_config['scheme']
+        config.verify_ssl = my_config['verify_ssl']
+        config.verify_ssl_host = my_config['verify_ssl_host']
+        config.ssl_ca_cert = my_config['ssl_ca_cert']
+        if my_config['host']
+          config.host = my_config['host']
+        end
+      end
+      api_instance = {
+        :api_version => 2,
+        :client => Harbor2Client::ProjectApi.new,
+        :legacy_client => Harbor2LegacyClient::ProductsApi.new
+      }
+    else
+      Harbor1Client.configure do |config|
+        config.username = my_config['username']
+        config.password = my_config['password']
+        config.scheme = my_config['scheme']
+        config.verify_ssl = my_config['verify_ssl']
+        config.verify_ssl_host = my_config['verify_ssl_host']
+        config.ssl_ca_cert = my_config['ssl_ca_cert']
+        if my_config['host']
+          config.host = my_config['host']
+        end
+      end
+      client = Harbor1Client::ProductsApi.new
+      api_instance = {
+        :api_version => 1,
+        :client => client,
+        :legacy_client => client
+      }
     end
-
-    api_instance = SwaggerClient::ProductsApi.new
     api_instance
   end
 
@@ -54,7 +93,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
 
   def self.get_project_members_with_entity_type(project_id, type)
     api_instance = do_login
-    members_and_groups = api_instance.projects_project_id_members_get(project_id)
+    members_and_groups = api_instance[:legacy_client].projects_project_id_members_get(project_id)
     members_and_groups.select { |m| m.entity_type == type }
   end
 
@@ -97,30 +136,51 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   def get_projects_with_opts(opts)
     api_instance = self.class.do_login
     begin
-      projects = api_instance.projects_get(opts)
-      projects.nil? ? [] : projects
-    rescue SwaggerClient::ApiError => e
+      if api_instance[:api_version] == 2
+        projects = api_instance[:client].list_projects(opts)
+        projects.nil? ? [] : projects
+      else
+        projects = api_instance[:client].projects_get(opts)
+        projects.nil? ? [] : projects
+      end
+    rescue Harbor2Client::ApiError => e
+      puts "Exception when calling ProjectApi->list_projects: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->projects_get: #{e}"
     end
   end
 
   def create
     api_instance = self.class.do_login
-    np = SwaggerClient::ProjectReq.new(
-      project_name: resource[:name],
-      metadata: {
-        public:    resource[:public],
-        auto_scan: resource[:auto_scan].to_s,
-      }
-    )
+    if api_instance[:api_version] == 2
+      np = Harbor2Client::ProjectReq.new(
+        project_name: resource[:name],
+        metadata: {
+          public:    resource[:public],
+          auto_scan: resource[:auto_scan].to_s,
+        }
+      )
+    else
+      np = Harbor1Client::ProjectReq.new(
+        project_name: resource[:name],
+        metadata: {
+          public:    resource[:public],
+          auto_scan: resource[:auto_scan].to_s,
+        }
+      )
+    end
     begin
-      api_instance.projects_post(np)
-    rescue SwaggerClient::ApiError => e
+      if api_instance[:api_version] == 2
+        api_instance[:client].create_project(np)
+      else
+        api_instance[:client].projects_post(np)
+      end
+    rescue Harbor2Client::ApiError => e
+      puts "Exception when calling ProjectApi->create_project: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->projects_post: #{e}"
     end
-
     return nil if resource[:members].nil? and resource[:member_groups].nil?
-
     id = get_project_id_by_name(resource[:name])
     unless resource[:members].nil?
       members = resource[:members]
@@ -150,8 +210,14 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     api_instance = self.class.do_login
     id = get_project_id_by_name(resource[:name])
     begin
-      api_instance.projects_project_id_put(id, project_hash, opts = {})
-    rescue SwaggerClient::ApiError => e
+      if api_instance[:api_version] == 2
+        api_instance[:client].update_project(id, project_hash, opts = {})
+      else
+        api_instance[:client].projects_project_id_put(id, project_hash, opts = {})
+      end
+    rescue Harbor2Client::ApiError => e
+      puts "Exception when calling ProjectApi->update_project: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->projects_project_id_put: #{e}"
     end
   end
@@ -174,10 +240,8 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     id = get_project_id_by_name(resource[:name])
     current_members = self.class.get_project_member_names(id)
     members = resource[:members]
-
     members_to_delete = current_members - members
     members_to_add = members - current_members
-
     remove_members_from_project(id, members_to_delete) unless members_to_delete.empty?
     add_members_to_project(id, members_to_add) unless members_to_add.empty?
   end
@@ -187,7 +251,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     member_names.sort!
     member_names.each do |name|
       member_id = get_project_member_id_by_name(project_id, name)
-      api_instance.projects_project_id_members_mid_delete(project_id, member_id)
+      api_instance[:legacy_client].projects_project_id_members_mid_delete(project_id, member_id)
     end
   end
 
@@ -196,7 +260,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     opts = {
       entityname: name,
     }
-    result = api_instance.projects_project_id_members_get(project_id, opts)
+    result = api_instance[:legacy_client].projects_project_id_members_get(project_id, opts)
     result[0].id
   end
 
@@ -211,8 +275,10 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   def post_project_members(project_id, opts)
     api_instance = self.class.do_login
     begin
-      api_instance.projects_project_id_members_post(project_id, opts)
-    rescue SwaggerClient::ApiError => e
+      api_instance[:legacy_client].projects_project_id_members_post(project_id, opts)
+    rescue Harbor2LegacyClient::ApiError => e
+      puts "Exception when calling ProductsApi->projects_project_id_members_post: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->projects_project_id_members_post: #{e}"
     end
   end
@@ -226,10 +292,8 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     project_id = get_project_id_by_name(resource[:name])
     current_member_groups = self.class.get_project_member_group_names(project_id)
     member_groups = resource[:member_groups]
-
     member_groups_to_delete = current_member_groups - member_groups
     member_groups_to_add = member_groups - current_member_groups
-
     remove_member_groups_from_project(project_id, member_groups_to_delete) unless member_groups_to_delete.empty?
     add_member_groups_to_project(project_id, member_groups_to_add) unless member_groups_to_add.empty?
   end
@@ -249,7 +313,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
 
   def get_usergroup_id_by_name(name)
     api_instance = self.class.do_login
-    all_groups = api_instance.usergroups_get()
+    all_groups = api_instance[:legacy_client].usergroups_get()
     x = all_groups.select { |g| g.group_name == name }
     x[0].id
   end
@@ -262,8 +326,14 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   def delete_project_with_id(id)
     api_instance = self.class.do_login
     begin
-      api_instance.projects_project_id_delete(id)
-    rescue SwaggerClient::ApiError => e
+      if api_instance[:api_version] == 2
+        api_instance[:client].delete_project(id)
+      else
+        api_instance[:client].projects_project_id_delete(id)
+      end
+    rescue Harbor2Client::ApiError => e
+      puts "Exception when calling ProductsApi->delete_project: #{e}"
+    rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->projects_project_id_delete: #{e}"
     end
   end
