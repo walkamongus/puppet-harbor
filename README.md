@@ -54,7 +54,20 @@ If using Harbor with SSL enabled you should also include:
 scheme: 'https'
 ```
 
-If using Harbor with a self-signed SSL certificate you should also include:
+If using Harbor with a self-signed SSL certificate you have to provide the path to your
+self-signed root CA to validate the certificate.
+Additionally, the swagger client has to contact Harbor with the host name that the
+self-signed SSL certificate corresponds to which is the host's fqdn
+and not ```localhost``` (which is the default value).
+```
+scheme: https
+verify_ssl: true
+verify_ssl_host: true
+ssl_ca_cert: /etc/ssl/certs/ca-certificates.crt
+host: hostname.my.domain
+```
+
+Alternatively you can disable ssl for the swagger client:
 ```
 verify_ssl: false
 verify_ssl_host: false
@@ -63,6 +76,25 @@ verify_ssl_host: false
 If using Harbor v2.x, you should also include:
 ```
 api_version: 2
+```
+
+This is an example using a ```file``` resource to write the settings file:
+```
+$swagger_settings = {
+ username        => $username,
+ password        => $password,
+ scheme          => 'https',
+ verify_ssl      => true,
+ verify_ssl_host => true,
+ ssl_ca_cert     => '/etc/ssl/certs/ca-certificates.crt',
+ host            => $facts['fqdn'],
+ api_version     => Integer($api_version),
+}
+
+file { '/etc/puppetlabs/swagger.yaml':
+ ensure  => present,
+ content => to_yaml($swagger_settings),
+}
 ```
 
 ### User settings
