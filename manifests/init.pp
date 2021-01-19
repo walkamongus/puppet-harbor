@@ -350,7 +350,7 @@ class harbor (
   contain 'harbor::service'
 
   Class['harbor::install']
-  -> Class['harbor::config']
+  ~> Class['harbor::config']
   ~> Class['harbor::prepare']
   ~> Class['harbor::service']
 
