@@ -23,7 +23,7 @@ describe 'harbor' do
             is_expected.to contain_file('/opt/harbor/harbor.yml').with_content(/^_version: 1.10.0$/)
             is_expected.to contain_exec('migrate_cfg').with(
               'cwd' => '/opt/harbor',
-              'command' => "/usr/bin/docker run --rm -v harbor.yml:/harbor-migration/harbor-cfg/harbor.yml -v harbor.yml:/harbor-migration/harbor-cfg-out/harbor.yml goharbor/harbor-migrator:1.10.0 --cfg up"
+              'command' => "/usr/bin/docker run --rm -v harbor.yml:/harbor-migration/harbor-cfg/harbor.yml -v harbor.yml:/harbor-migration/harbor-cfg-out/harbor.yml goharbor/harbor-migrator:v1.10.0 --cfg up"
             )
           end
         end
