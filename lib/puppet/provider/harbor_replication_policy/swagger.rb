@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require 'puppet_x/walkamongus/harbor/client'
 
 Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   mk_resource_methods
@@ -58,59 +59,7 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def self.do_login
-    require 'yaml'
-    my_config = YAML.load_file('/etc/puppetlabs/swagger.yaml')
-    require 'harbor2_client'
-    require 'harbor2_legacy_client'
-    require 'harbor1_client'
-    if my_config.fetch('api_version', 1) == 2
-      Harbor2Client.configure do |config|
-        config.username = my_config['username']
-        config.password = my_config['password']
-        config.scheme = my_config['scheme']
-        config.verify_ssl = my_config['verify_ssl']
-        config.verify_ssl_host = my_config['verify_ssl_host']
-        config.ssl_ca_cert = my_config['ssl_ca_cert']
-        if my_config['host']
-          config.host = my_config['host']
-        end
-      end
-      Harbor2LegacyClient.configure do |config|
-        config.username = my_config['username']
-        config.password = my_config['password']
-        config.scheme = my_config['scheme']
-        config.verify_ssl = my_config['verify_ssl']
-        config.verify_ssl_host = my_config['verify_ssl_host']
-        config.ssl_ca_cert = my_config['ssl_ca_cert']
-        if my_config['host']
-          config.host = my_config['host']
-        end
-      end
-      api_instance = {
-        :api_version => 2,
-        :client => Harbor2Client::ProjectApi.new,
-        :legacy_client => Harbor2LegacyClient::ProductsApi.new
-      }
-    else
-      Harbor1Client.configure do |config|
-        config.username = my_config['username']
-        config.password = my_config['password']
-        config.scheme = my_config['scheme']
-        config.verify_ssl = my_config['verify_ssl']
-        config.verify_ssl_host = my_config['verify_ssl_host']
-        config.ssl_ca_cert = my_config['ssl_ca_cert']
-        if my_config['host']
-          config.host = my_config['host']
-        end
-      end
-      client = Harbor1Client::ProductsApi.new
-      api_instance = {
-        :api_version => 1,
-        :client => client,
-        :legacy_client => client
-      }
-    end
-    api_instance
+     PuppetX::Walkamongus::Harbor::Client.do_login
   end
 
   def exists?
