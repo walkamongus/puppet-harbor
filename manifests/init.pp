@@ -257,19 +257,25 @@ class harbor (
   }
 
   if $backup_enabled {
-    if $facts['harbor_systeminfo'] {
-      if !empty($facts['harbor_systeminfo']['harbor_version']) {
-        $_running_version = $facts['harbor_systeminfo']['harbor_version'].match(/^v(\d+\.\d+\.\d+)/)[1]
-        if versioncmp($version, $_running_version) > 0 {
-          class { 'harbor::backup':
-            version        => $_running_version,
-            data_volume    => $data_volume,
-            backup_directory => $backup_directory,
-            before         => Class['harbor::install'],
-          }
-          contain 'harbor::backup'
-        }
+    $harbor_systeminfo = $facts['harbor_systeminfo']
+    if !$harbor_systeminfo {
+      fail("Backup failed because fact['harbor_systeminfo'] is not available.")
+    }
+
+    $complete_running_version = $harbor_systeminfo['harbor_version']
+    if !$complete_running_version or empty($complete_running_version) {
+      fail("Backup failed because fact['harbor_systeminfo']['harbor_version'] is not available.")
+    }
+
+    $shortened_running_version = $complete_running_version.match(/^v(\d+\.\d+\.\d+)/)[1]
+    if versioncmp($version, $shortened_running_version) > 0 {
+      class { 'harbor::backup':
+        version          => $shortened_running_version,
+        data_volume      => $data_volume,
+        backup_directory => $backup_directory,
+        before           => Class['harbor::install'],
       }
+      contain 'harbor::backup'
     }
   }
 

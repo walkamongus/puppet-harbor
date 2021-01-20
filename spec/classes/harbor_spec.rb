@@ -52,5 +52,49 @@ describe 'harbor' do
         end
       end
     end
+
+    context "with backup_enabled equals true and with missing fact 'harbor_systeminfo'" do
+      let(:facts) do
+        os_facts.merge({
+          :harbor_systeminfo => nil,
+        })
+      end
+
+      let(:params) { {'backup_enabled' => true} }
+
+      it { is_expected.to raise_error(Puppet::PreformattedError, /Backup failed because fact\['harbor_systeminfo'\] is not available./) }
+    end
+
+    context "with backup_enabled equals true and with missing fact 'harbor_systeminfo''harbor_version'" do
+      let(:facts) do
+        os_facts.merge({
+          :harbor_systeminfo => {:some_key => 'value'},
+        })
+      end
+      let(:params) { {'backup_enabled' => true} }
+      it { is_expected.to raise_error(Puppet::PreformattedError, /Backup failed because fact\['harbor_systeminfo'\]\['harbor_version'\] is not available./) }
+    end
+
+    context "with backup_enabled equals true and fact 'harbor_systeminfo''harbor_version'" do
+      let(:facts) do
+        os_facts.merge({
+          :harbor_systeminfo => {:harbor_version => 'v1.10.6-490042d8'},
+        })
+      end
+      let(:params) { {'backup_enabled' => true} }
+
+      it { is_expected.to contain_class('harbor::backup') }
+
+      describe 'harbor::backup' do
+        context 'with init default params' do
+          it do
+            is_expected.to contain_exec('stop_harbor')
+            is_expected.to contain_exec('back_up_harbor_database').with(
+                  'require' => 'Exec[stop_harbor]',
+                )
+          end
+        end
+      end
+    end
   end
 end
