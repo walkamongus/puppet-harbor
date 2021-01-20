@@ -17,11 +17,11 @@ describe 'harbor' do
       describe 'harbor::install' do
         context 'with init default params' do
           it do
-            is_expected.to contain_archive('/tmp/harbor-offline-installer-v2.1.1.tgz').with(
-              'source' => 'https://storage.googleapis.com/harbor-releases/release-2.1.0/harbor-offline-installer-v2.1.1.tgz',
+            is_expected.to contain_archive('/tmp/harbor-offline-installer-v2.1.2.tgz').with(
+              'source' => 'https://storage.googleapis.com/harbor-releases/release-2.1.0/harbor-offline-installer-v2.1.2.tgz',
             )
           end
-          it { is_expected.to contain_file('/opt/harbor-v2.1.1') }
+          it { is_expected.to contain_file('/opt/harbor-v2.1.2') }
           it { is_expected.to contain_file('/opt/harbor') }
           it { is_expected.to contain_docker__image('goharbor/harbor-log') }
         end
