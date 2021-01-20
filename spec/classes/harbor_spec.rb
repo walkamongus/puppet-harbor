@@ -31,6 +31,7 @@ describe 'harbor' do
         context 'with init default params' do
           it do
             is_expected.to contain_file('/opt/harbor/harbor.yml')
+            is_expected.to contain_exec('migrate_cfg')
           end
         end
       end
