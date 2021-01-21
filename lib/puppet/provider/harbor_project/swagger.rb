@@ -6,25 +6,40 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   desc 'Swagger API implementation for harbor projects'
 
   def self.instances
-    api_instance = do_login
-    if api_instance[:api_version] == 2
-      projects = api_instance[:client].list_projects
-    else
-      projects = api_instance[:client].projects_get
+    projects = get_all_projects
+    projects.map do |project|
+      new(
+        ensure:        :present,
+        name:          project.name,
+        public:        project.metadata.public,
+        auto_scan:     project.metadata.auto_scan.nil? ? :false : project.metadata.auto_scan.to_sym,
+        members:       get_project_member_names(project.project_id),
+        member_groups: get_project_member_group_names(project.project_id),
+        provider:      :swagger,
+      )
     end
-    if projects.nil?
-      []
-    else
-      projects.map do |project|
-        new(
-          ensure:        :present,
-          name:          project.name,
-          public:        project.metadata.public,
-          auto_scan:     project.metadata.auto_scan.nil? ? :false : project.metadata.auto_scan.to_sym,
-          members:       get_project_member_names(project.project_id),
-          member_groups: get_project_member_group_names(project.project_id),
-          provider:      :swagger,
-        )
+  end
+
+  def self.get_all_projects
+    projects = []
+    page = 1
+    begin
+      page_projects = get_projects_with_opts({:page => page})
+      projects += page_projects
+      page += 1
+    end until page_projects.empty?
+    projects
+  end
+
+  def self.get_projects_with_opts(opts)
+    api_instance = do_login
+    begin
+      if api_instance[:api_version] == 2
+        projects = api_instance[:client].list_projects(opts)
+        projects.nil? ? [] : projects
+      else
+        projects = api_instance[:client].projects_get(opts)
+        projects.nil? ? [] : projects
       end
     end
   end
@@ -58,6 +73,10 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
       if (resource = resources[int.name])
         resource.provider = int
       end
+    rescue Harbor2Client::ApiError => e
+      puts "Exception when calling ProjectApi->list_projects: #{e}"
+    rescue Harbor1Client::ApiError => e
+      puts "Exception when calling ProductsApi->projects_get: #{e}"
     end
   end
 
@@ -83,20 +102,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def get_projects_with_opts(opts)
-    api_instance = self.class.do_login
-    begin
-      if api_instance[:api_version] == 2
-        projects = api_instance[:client].list_projects(opts)
-        projects.nil? ? [] : projects
-      else
-        projects = api_instance[:client].projects_get(opts)
-        projects.nil? ? [] : projects
-      end
-    rescue Harbor2Client::ApiError => e
-      puts "Exception when calling ProjectApi->list_projects: #{e}"
-    rescue Harbor1Client::ApiError => e
-      puts "Exception when calling ProductsApi->projects_get: #{e}"
-    end
+    self.class.get_projects_with_opts(opts)
   end
 
   def create
