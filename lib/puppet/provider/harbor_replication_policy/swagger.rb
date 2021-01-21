@@ -80,7 +80,7 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def get_policies_with_opts(opts)
-    api_instance self.class.do_login
+    api_instance = self.class.do_login
     begin
       api_instance[:legacy_client].replication_policies_get(opts)
     rescue Harbor2LegacyClient::ApiError => e
