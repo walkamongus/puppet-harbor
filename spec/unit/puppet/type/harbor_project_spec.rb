@@ -114,6 +114,28 @@ describe Puppet::Type.type(:harbor_project) do
             end
           end
         end
+      
+        describe "guests" do
+          [ [], ['a_name'], ['a_name', 'another_name']].each do |value|
+            it "should support array of string values: #{value}" do
+              expect { described_class.new({
+                :name  => 'the_project',
+                :guest => value,
+              }) }.to_not raise_error
+            end
+          end
+        end
+
+        describe "guest_groups" do
+          [ [], ['a_group'], ['a_group', 'another_group']].each do |value|
+            it "should support array of string values: #{value}" do
+              expect { described_class.new({
+                :name         => 'the_project',
+                :guest_groups => value,
+              }) }.to_not raise_error
+            end
+          end
+        end
       end
     end
   end
