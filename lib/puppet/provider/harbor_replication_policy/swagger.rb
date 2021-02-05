@@ -103,18 +103,34 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   def create_policy_from_resource
     remote_registry_info = get_registry_info_by_name(resource[:remote_registry])
     mode = resource[:replication_mode].to_s
-    SwaggerClient::ReplicationPolicy.new(
-      name:           resource[:name],
-      description:    resource[:description],
-      deletion:       cast_symbol_to_bool(resource[:deletion]),
-      enabled:        cast_symbol_to_bool(resource[:enabled]),
-      override:       cast_symbol_to_bool(resource[:override]),
-      dest_registry:  (mode == 'push') ? remote_registry_info : nil,
-      src_registry:   (mode == 'pull') ? remote_registry_info : nil,
-      dest_namespace: resource[:dest_namespace],
-      trigger:        create_replication_trigger_object(resource[:trigger]),
-      filters:        create_replication_filter_object(resource[:filters]),
-    )
+
+    if api_instance[:api_version] == 2
+      nr = Harbor2LegacyClient::ReplicationPolicy.new(
+        name:           resource[:name],
+        description:    resource[:description],
+        deletion:       cast_symbol_to_bool(resource[:deletion]),
+        enabled:        cast_symbol_to_bool(resource[:enabled]),
+        override:       cast_symbol_to_bool(resource[:override]),
+        dest_registry:  (mode == 'push') ? remote_registry_info : nil,
+        src_registry:   (mode == 'pull') ? remote_registry_info : nil,
+        dest_namespace: resource[:dest_namespace],
+        trigger:        create_replication_trigger_object(resource[:trigger]),
+        filters:        create_replication_filter_object(resource[:filters])
+      )
+    else
+      nr = Harbor1Client::ReplicationPolicy.new(
+        name:           resource[:name],
+        description:    resource[:description],
+        deletion:       cast_symbol_to_bool(resource[:deletion]),
+        enabled:        cast_symbol_to_bool(resource[:enabled]),
+        override:       cast_symbol_to_bool(resource[:override]),
+        dest_registry:  (mode == 'push') ? remote_registry_info : nil,
+        src_registry:   (mode == 'pull') ? remote_registry_info : nil,
+        dest_namespace: resource[:dest_namespace],
+        trigger:        create_replication_trigger_object(resource[:trigger]),
+        filters:        create_replication_filter_object(resource[:filters])
+      )
+    end
   end
 
   def get_registry_info_by_name(registry_name)
