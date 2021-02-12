@@ -101,6 +101,7 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def create_policy_from_resource
+    api_instance = self.class.do_login
     remote_registry_info = get_registry_info_by_name(resource[:remote_registry])
     mode = resource[:replication_mode].to_s
 
