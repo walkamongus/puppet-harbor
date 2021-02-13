@@ -155,16 +155,26 @@ Puppet::Type.type(:harbor_replication_policy).provide(:swagger) do
   end
 
   def create_replication_filter_object(filters)
+    api_instance = self.class.do_login
     all_filters = []
     filters.each do |filter|
-      fil = SwaggerClient::ReplicationFilter.new(filter)
+      if api_instance[:api_version] == 2
+        fil = Harbor2LegacyClient::ReplicationFilter.new(filter)
+      else
+        fil = Harbor1Client::ReplicationFilter.new(filter)
+      end
       all_filters << fil
     end
     all_filters
   end
 
   def create_replication_trigger_object(trigger)
-    SwaggerClient::ReplicationTrigger.new(trigger)
+    api_instance = self.class.do_login
+    if api_instance[:api_version] == 2
+      Harbor2LegacyClient::ReplicationTrigger.new(trigger)
+    else
+      Harbor1Client::ReplicationTrigger.new(trigger)
+    end
   end
 
   def post_replication_policy(policy)
