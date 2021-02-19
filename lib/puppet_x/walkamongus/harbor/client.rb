@@ -48,6 +48,7 @@ class PuppetX::Walkamongus::Harbor::Client
 
   def self.do_login_api_v1(client_config)
     require 'harbor1_client'
+    require 'harbor2_legacy_client'
     Harbor1Client.configure do |config|
       config.username = client_config['username']
       config.password = client_config['password']
