@@ -1,4 +1,5 @@
-<%- | String $compose_files | -%>
+<%- | String $compose_install_path,
+      String $compose_files | -%>
 # This file is managed by Puppet and local changes
 # may be overwritten
 [Unit]
@@ -8,8 +9,8 @@ After=docker.service
 [Service]
 Restart=always
 # Shutdown container (if running) when unit is stopped
-ExecStartPre=/usr/local/bin/docker-compose <%= $compose_files %> down -v
-ExecStart=/usr/local/bin/docker-compose <%= $compose_files %> up --remove-orphans
-ExecStop=/usr/local/bin/docker-compose <%= $compose_files %> down -v
+ExecStartPre=<%= $compose_install_path %>/docker-compose <%= $compose_files %> down -v
+ExecStart=<%= $compose_install_path %>/docker-compose <%= $compose_files %> up --remove-orphans
+ExecStop=<%= $compose_install_path %>/docker-compose <%= $compose_files %> down -v
 [Install]
 WantedBy=multi-user.target
