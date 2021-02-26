@@ -130,10 +130,10 @@ DESC
     desc 'The scope sent to OIDC server during authentication, should be separated by comma.'
   end
 
-  newproperty(:oidc_verify_cert) do
+  newproperty(:oidc_verify_cert, boolean: true) do
     desc 'Set whether to verify OIDC SSL certificate'
-    defaultto true
-    newvalues(true, false)
+    defaultto :true
+    newvalues(:true, :false)
   end
 
   newproperty(:project_creation_restriction) do

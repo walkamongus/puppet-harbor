@@ -432,7 +432,11 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     define_method prop do
       api_instance = do_login
       config = get_config(api_instance)
-      config.send(prop).value
+      _value = config.send(prop).value
+      if !!_value == _value
+        _value = _value.to_s.to_sym
+      end
+      _value
     end
     define_method "#{prop}=".to_sym do |value|
       api_instance = do_login
