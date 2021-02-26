@@ -422,6 +422,39 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
     end
   end
 
+  [
+    :oidc_admin_group,
+    :oidc_auto_onboard,
+    :oidc_client_id,
+    :oidc_client_secret,
+    :oidc_endpoint,
+    :oidc_extra_redirect_parms,
+    :oidc_groups_claim,
+    :oidc_name,
+    :oidc_scope,
+    :oidc_user_claim,
+    :oidc_verify_cert,
+  ].each do |prop|
+    define_method prop do
+      api_instance = do_login
+      config = get_config(api_instance)
+      config.send(prop).value
+    end
+    define_method "#{prop}=".to_sym do |value|
+      api_instance = do_login
+      configurations = {
+        "#{prop}": resource[prop],
+      }
+      begin
+        api_instance[:legacy_client].configurations_put(configurations)
+      rescue Harbor2LegacyClient::ApiError => e
+        puts "Exception when calling ProductsApi->configurations_put for #{prop}: #{e}"
+      rescue Harbor1Client::ApiError => e
+        puts "Exception when calling ProductsApi->configurations_put for #{prop}: #{e}"
+      end
+    end
+  end
+
   def project_creation_restriction
     api_instance = do_login
     config = get_config(api_instance)
