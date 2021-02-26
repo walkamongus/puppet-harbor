@@ -69,9 +69,11 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   end
 
   def self.prefetch(resources)
-    instances.each do |int|
-      if (resource = resources[int.name])
-        resource.provider = int
+    begin
+      instances.each do |int|
+        if (resource = resources[int.name])
+          resource.provider = int
+        end
       end
     rescue Harbor2Client::ApiError => e
       puts "Exception when calling ProjectApi->list_projects: #{e}"
