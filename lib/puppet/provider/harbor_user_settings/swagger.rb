@@ -423,16 +423,10 @@ Puppet::Type.type(:harbor_user_settings).provide(:swagger) do
   end
 
   [
-    :oidc_admin_group,
-    :oidc_auto_onboard,
     :oidc_client_id,
-    :oidc_client_secret,
     :oidc_endpoint,
-    :oidc_extra_redirect_parms,
-    :oidc_groups_claim,
     :oidc_name,
     :oidc_scope,
-    :oidc_user_claim,
     :oidc_verify_cert,
   ].each do |prop|
     define_method prop do

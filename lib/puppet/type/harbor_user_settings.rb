@@ -114,35 +114,12 @@ DESC
     desc 'Specify the ldap group which have the same privilege with Harbor admin'
   end
 
-  newproperty(:oidc_admin_group) do
-    desc 'OIDC admin group'
-  end
-
-  newproperty(:oidc_auto_onboard, boolean: true) do
-    desc 'Skip onboarding screen so users cannot choose username'
-    defaultto :false
-    newvalues(:true, :false)
-  end
-
   newproperty(:oidc_client_id) do
     desc 'OIDC Client ID'
   end
 
-  newproperty(:oidc_client_secret) do
-    desc 'OIDC Client Secret'
-  end
-
   newproperty(:oidc_endpoint) do
     desc 'The URL of OIDC endpoint'
-  end
-
-  newproperty(:oidc_extra_redirect_parms) do
-    desc 'OIDC extra redirect parameters'
-    defaultto({})
-  end
-
-  newproperty(:oidc_groups_claim) do
-    desc 'The OIDC groups claim'
   end
 
   newproperty(:oidc_name) do
@@ -153,14 +130,10 @@ DESC
     desc 'The scope sent to OIDC server during authentication, should be separated by comma.'
   end
 
-  newproperty(:oidc_user_claim) do
-    desc 'The OIDC user name claim'
-  end
-
-  newproperty(:oidc_verify_cert, boolean: true) do
+  newproperty(:oidc_verify_cert) do
     desc 'Set whether to verify OIDC SSL certificate'
-    defaultto :true
-    newvalues(:true, :false)
+    defaultto true
+    newvalues(true, false)
   end
 
   newproperty(:project_creation_restriction) do
