@@ -37,7 +37,11 @@ class harbor::prepare (
     content => join([
       '#!/bin/bash',
       '# File managed by Puppet, do not edit',
+      'systemctl stop harbor',
       "/opt/harbor/prepare ${opts}",
+      'ret=$?',
+      'systemctl start harbor',
+      'exit $ret',
       '',
     ], "\n"),
     notify  => Exec['prepare_harbor'],
