@@ -7,12 +7,18 @@
   $customize_crt,
   $ssl_cert,
   $ssl_cert_key,
+  $internal_tls,
+  $internal_tls_dir,
   $secretkey_path,
   $external_url,
   $log_level,
   $log_rotate_count,
   $log_rotate_size,
   $log_location,
+  $log_external_endpoint,
+  $log_external_endpoint_protocol,
+  $log_external_endpoint_host,
+  $log_external_endpoint_port,
   $http_proxy,
   $https_proxy,
   $no_proxy,
@@ -32,6 +38,10 @@
   $redis_jobservice_db_index,
   $redis_chartmuseum_db_index,
   $redis_clair_db_index,
+  $trivy_ignore_unfixed,
+  $trivy_skip_update,
+  $trivy_insecure,
+  $trivy_github_token,
   $clair_db_host,
   $clair_db_password,
   $clair_db_port,
@@ -45,6 +55,9 @@
   $reload_config,
   $skip_reload_env_pattern,
   $webhook_job_max_retry,
+  $metrics,
+  $metrics_port,
+  $metrics_path,
 | -%>
 # Configuration file of Harbor
 
@@ -66,6 +79,15 @@ https:
   certificate: <%= $ssl_cert %>
   private_key: <%= $ssl_cert_key %>
 <% } %>
+
+<%- if $internal_tls { -%>
+# # Uncomment following will enable tls communication between all harbor components
+internal_tls:
+#   # set enabled to true means internal tls is enabled
+  enabled: true
+#   # put your cert and key files on dir
+  dir: <%= $internal_tls_dir %>
+<%- } -%>
 
 <% if ! empty($external_url) { -%>
 # Uncomment external_url if you want to enable external proxy
@@ -106,6 +128,39 @@ data_volume: <%= $data_volume %>
 #   redirect:
 #     disabled: false
 
+# Trivy configuration
+#
+# Trivy DB contains vulnerability information from NVD, Red Hat, and many other upstream vulnerability databases.
+# It is downloaded by Trivy from the GitHub release page https://github.com/aquasecurity/trivy-db/releases and cached
+# in the local file system. In addition, the database contains the update timestamp so Trivy can detect whether it
+# should download a newer version from the Internet or use the cached one. Currently, the database is updated every
+# 12 hours and published as a new release to GitHub.
+trivy:
+  # ignoreUnfixed The flag to display only fixed vulnerabilities
+  ignore_unfixed: <%= $trivy_ignore_unfixed %>
+  # skipUpdate The flag to enable or disable Trivy DB downloads from GitHub
+  #
+  # You might want to enable this flag in test or CI/CD environments to avoid GitHub rate limiting issues.
+  # If the flag is enabled you have to download the `trivy-offline.tar.gz` archive manually, extract `trivy.db` and
+  # `metadata.json` files and mount them in the `/home/scanner/.cache/trivy/db` path.
+  skip_update: <%= $trivy_skip_update %>
+  #
+  # insecure The flag to skip verifying registry certificate
+  insecure: <%= $trivy_insecure %>
+  # github_token The GitHub access token to download Trivy DB
+  #
+  # Anonymous downloads from GitHub are subject to the limit of 60 requests per hour. Normally such rate limit is enough
+  # for production operations. If, for any reason, it's not enough, you could increase the rate limit to 5000
+  # requests per hour by specifying the GitHub access token. For more details on GitHub rate limiting please consult
+  # https://developer.github.com/v3/#rate-limiting
+  #
+  # You can create a GitHub token by following the instructions in
+  # https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
+  #
+  <%- if $trivy_github_token { -%>
+  github_token: <%= $trivy_github_token %>
+  <%- } -%>
+
 # Clair configuration
 clair: 
   # The interval of clair updaters, the unit is hour, set to 0 to disable the updaters.
@@ -138,13 +193,15 @@ log:
     location: <%= $log_location %>
 
   # Uncomment following lines to enable external syslog endpoint.
-  # external_endpoint:
+<%- if $log_external_endpoint { -%>
+  external_endpoint:
   #   # protocol used to transmit log to external endpoint, options is tcp or udp
-  #   protocol: tcp
+    protocol: <%= $log_external_endpoint_protocol %>
   #   # The host of external endpoint
-  #   host: localhost
+    host: <%= $log_external_endpoint_host %>
   #   # Port of external endpoint
-  #   port: 5140
+    port: <%= $log_external_endpoint_port %>
+<%- } -%>
 
 #This attribute is for migrator to detect the version of the .cfg file, DO NOT MODIFY!
 _version: <%= $cfg_version %>
@@ -219,3 +276,9 @@ proxy:
     - core
     - jobservice
     - clair
+<%- if $metrics { -%>
+metric:
+  enabled: true
+  port: <%= $metrics_port %>
+  path: <%= $metrics_path %>
+<%- } -%>

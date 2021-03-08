@@ -114,6 +114,28 @@ DESC
     desc 'Specify the ldap group which have the same privilege with Harbor admin'
   end
 
+  newproperty(:oidc_client_id) do
+    desc 'OIDC Client ID'
+  end
+
+  newproperty(:oidc_endpoint) do
+    desc 'The URL of OIDC endpoint'
+  end
+
+  newproperty(:oidc_name) do
+    desc 'The name of the OIDC provider'
+  end
+
+  newproperty(:oidc_scope) do
+    desc 'The scope sent to OIDC server during authentication, should be separated by comma.'
+  end
+
+  newproperty(:oidc_verify_cert, boolean: true) do
+    desc 'Set whether to verify OIDC SSL certificate'
+    defaultto :true
+    newvalues(:true, :false)
+  end
+
   newproperty(:project_creation_restriction) do
     desc 'This attribute restricts what users have the permission to create project. It can be "everyone" or "adminonly"'
     defaultto 'everyone'

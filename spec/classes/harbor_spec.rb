@@ -18,7 +18,7 @@ describe 'harbor' do
         context 'with init default params' do
           it do
             is_expected.to contain_archive('/tmp/harbor-offline-installer-v2.1.2.tgz').with(
-              'source' => 'https://storage.googleapis.com/harbor-releases/release-2.1.0/harbor-offline-installer-v2.1.2.tgz',
+              'source' => 'https://github.com/goharbor/harbor/releases/download/v2.1.2/harbor-offline-installer-v2.1.2.tgz'
             )
           end
           it { is_expected.to contain_file('/opt/harbor-v2.1.2') }

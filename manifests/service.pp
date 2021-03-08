@@ -6,11 +6,14 @@ class harbor::service (
   $with_clair,
   $with_chartmuseum,
   $harbor_ha,
+  $compose_install_path,
 ){
 
   assert_private()
 
-  if versioncmp($cfg_version, '1.8.0') >= 0 {
+  if versioncmp($cfg_version, '2.0.0') >= 0 {
+    $_compose_files_final = '-f /opt/harbor/docker-compose.yml'
+  } elsif versioncmp($cfg_version, '1.8.0') >= 0 {
     if $harbor_ha {
       $_compose_files = '/opt/harbor/ha/docker-compose.yml'
     } else {
@@ -47,7 +50,8 @@ class harbor::service (
     group   => 'root',
     mode    => '0644',
     content => epp('harbor/harbor.service.epp', {
-      'compose_files' => $_compose_files_final,
+      'compose_install_path' => $compose_install_path,
+      'compose_files'        => $_compose_files_final,
     }),
     notify  => Exec['harbor_systemd_daemon-reload'],
   }
