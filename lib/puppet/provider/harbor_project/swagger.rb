@@ -15,6 +15,8 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
         auto_scan:     project.metadata.auto_scan.nil? ? :false : project.metadata.auto_scan.to_sym,
         members:       get_project_member_names(project.project_id),
         member_groups: get_project_member_group_names(project.project_id),
+        guests:        get_project_guest_names(project.project_id),
+        guest_groups:  get_project_guest_group_names(project.project_id),
         provider:      :swagger,
       )
     end
@@ -48,21 +50,38 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
      PuppetX::Walkamongus::Harbor::Client.do_login
   end
 
+  def self.get_project_members_with_entity_type_and_role_id(project_id, entity_type, role_id)
+    api_instance = do_login
+    members_and_groups = api_instance[:legacy_client].projects_project_id_members_get(project_id)
+    with_entity_type = members_and_groups.select { |m| m.entity_type == entity_type }
+    with_role_id = with_entity_type.select { |m| m.role_id == role_id }
+    debug(with_role_id)
+    with_role_id
+  end
+
   def self.get_project_member_names(project_id)
-    members = get_project_members_with_entity_type(project_id, 'u')
+    members = get_project_members_with_entity_type_and_role_id(project_id, 'u', 2)
     names = members.map { |m| m.entity_name }
     names.sort!.delete('admin')
     names
   end
 
-  def self.get_project_members_with_entity_type(project_id, type)
-    api_instance = do_login
-    members_and_groups = api_instance[:legacy_client].projects_project_id_members_get(project_id)
-    members_and_groups.select { |m| m.entity_type == type }
+  def self.get_project_member_group_names(project_id)
+    members = get_project_members_with_entity_type_and_role_id(project_id, 'g', 2)
+    names = members.map { |m| m.entity_name }
+    names.sort!
+    names
   end
 
-  def self.get_project_member_group_names(project_id)
-    members = get_project_members_with_entity_type(project_id, 'g')
+  def self.get_project_guest_names(project_id)
+    members = get_project_members_with_entity_type_and_role_id(project_id, 'u', 3)
+    names = members.map { |m| m.entity_name }
+    names.sort!.delete('admin')
+    names
+  end
+
+  def self.get_project_guest_group_names(project_id)
+    members = get_project_members_with_entity_type_and_role_id(project_id, 'g', 3)
     names = members.map { |m| m.entity_name }
     names.sort!
     names
@@ -137,7 +156,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     rescue Harbor1Client::ApiError => e
       puts "Exception when calling ProductsApi->projects_post: #{e}"
     end
-    return nil if resource[:members].nil? and resource[:member_groups].nil?
+    return nil if resource[:members].nil? and resource[:member_groups].nil? and resource[:guests].nil? and resource[:guest_groups].nil?
     id = get_project_id_by_name(resource[:name])
     unless resource[:members].nil?
       members = resource[:members]
@@ -146,6 +165,14 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     unless resource[:member_groups].nil?
       member_groups = resource[:member_groups]
       add_member_groups_to_project(id, member_groups)
+    end
+    unless resource[:guests].nil?
+      guests = resource[:guests]
+      add_guests_to_project(id, guests)
+    end
+    unless resource[:guest_groups].nil?
+      guest_groups = resource[:guest_groups]
+      add_guest_groups_to_project(id, guest_groups)
     end
   end
 
@@ -203,6 +230,21 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     add_members_to_project(id, members_to_add) unless members_to_add.empty?
   end
 
+  def guests
+    id = get_project_id_by_name(resource[:name])
+    self.class.get_project_guest_names(id)
+  end
+
+  def guests=(_value)
+    id = get_project_id_by_name(resource[:name])
+    current_guests = self.class.get_project_guest_names(id)
+    guests = resource[:guests]
+    guests_to_delete = current_guests - guests
+    guests_to_add = guests - current_guests
+    remove_guests_from_project(id, guests_to_delete) unless guests_to_delete.empty?
+    add_guests_to_project(id, guests_to_add) unless guests_to_add.empty?
+  end
+
   def remove_members_from_project(project_id, member_names)
     api_instance = self.class.do_login
     member_names.sort!
@@ -210,6 +252,10 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
       member_id = get_project_member_id_by_name(project_id, name)
       api_instance[:legacy_client].projects_project_id_members_mid_delete(project_id, member_id)
     end
+  end
+
+  def remove_guests_from_project(project_id, guest_names)
+    remove_members_from_project(project_id, guest_names)
   end
 
   def get_project_member_id_by_name(project_id, name)
@@ -225,6 +271,14 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     member_names.sort!
     member_names.each do |name|
       opts = { project_member: { role_id: 2, member_user: { "username": name.to_s } } } # role_id 2 == 'Developer'
+      post_project_members(project_id, opts)
+    end
+  end
+
+  def add_guests_to_project(project_id, guest_names)
+    guest_names.sort!
+    guest_names.each do |name|
+      opts = { project_member: { role_id: 3, member_user: { "username": name.to_s } } } # role_id 3 == 'Guest'
       post_project_members(project_id, opts)
     end
   end
@@ -255,7 +309,26 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     add_member_groups_to_project(project_id, member_groups_to_add) unless member_groups_to_add.empty?
   end
 
+  def guest_groups
+    id = get_project_id_by_name(resource[:name])
+    self.class.get_project_guest_group_names(id)
+  end
+
+  def guest_groups=(_value)
+    project_id = get_project_id_by_name(resource[:name])
+    current_guest_groups = self.class.get_project_guest_group_names(project_id)
+    guest_groups = resource[:guest_groups]
+    guest_groups_to_delete = current_guest_groups - guest_groups
+    guest_groups_to_add = guest_groups - current_guest_groups
+    remove_guest_groups_from_project(project_id, guest_groups_to_delete) unless guest_groups_to_delete.empty?
+    add_guest_groups_to_project(project_id, guest_groups_to_add) unless guest_groups_to_add.empty?
+  end
+
   def remove_member_groups_from_project(project_id, group_names)
+    remove_members_from_project(project_id, group_names)
+  end
+
+  def remove_guest_groups_from_project(project_id, group_names)
     remove_members_from_project(project_id, group_names)
   end
 
@@ -264,6 +337,15 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     member_group_names.each do |name|
       gid = get_usergroup_id_by_name(name)
       opts = { project_member: { role_id: 2, member_group: { "id": gid } } } # role_id 2 == 'Developer'
+      post_project_members(project_id, opts)
+    end
+  end
+
+  def add_guest_groups_to_project(project_id, guest_group_names)
+    guest_group_names.sort!
+    guest_group_names.each do |name|
+      gid = get_usergroup_id_by_name(name)
+      opts = { project_member: { role_id: 3, member_group: { "id": gid } } } # role_id 3 == 'Guest'
       post_project_members(project_id, opts)
     end
   end
