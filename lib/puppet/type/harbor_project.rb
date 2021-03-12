@@ -10,6 +10,8 @@ Puppet::Type.newtype(:harbor_project) do
       public        => 'true',
       members       => ['bob', 'alice'],
       member_groups => ['This Team', 'That Team'],
+      guests        => ['bob', 'alice'],
+      guest_groups => ['This Team', 'That Team'],
     }
 DESC
 
@@ -40,6 +42,20 @@ DESC
 
   newproperty(:member_groups, array_matching: :all) do
     desc 'An array of member groups for the project'
+    def insync?(is)
+      is.sort == should.sort
+    end
+  end
+
+  newproperty(:guests, array_matching: :all) do
+    desc 'An array of guests for the project'
+    def insync?(is)
+      is.sort == should.sort
+    end
+  end
+
+  newproperty(:guest_groups, array_matching: :all) do
+    desc 'An array of guest groups for the project'
     def insync?(is)
       is.sort == should.sort
     end
