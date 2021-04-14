@@ -72,18 +72,20 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
     api_instance = self.class.do_login
     if api_instance[:api_version] == 2
       nr = Harbor2LegacyClient::Registry.new(
-        name:       resource[:name],
-        url:        resource[:url],
-        type:       resource[:type],
-        insecure:   cast_symbol_to_bool(resource[:insecure]),
-        credential: create_credential)
+        name:        resource[:name],
+        description: resource[:description],
+        url:         resource[:url],
+        type:        resource[:type],
+        insecure:    cast_symbol_to_bool(resource[:insecure]),
+        credential:  create_credential)
     else
       nr = Harbor1Client::Registry.new(
-        name:       resource[:name],
-        url:        resource[:url],
-        type:       resource[:type],
-        insecure:   cast_symbol_to_bool(resource[:insecure]),
-        credential: create_credential)
+        name:        resource[:name],
+        description: resource[:description],
+        url:         resource[:url],
+        type:        resource[:type],
+        insecure:    cast_symbol_to_bool(resource[:insecure]),
+        credential:  create_credential)
     end
     post_registry(nr)
   end
@@ -130,18 +132,18 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
   def description=(_value)
     api_instance = self.class.do_login
     if api_instance[:api_version] == 2
-      repo_target = Harbor2LegacyClient::PutRegistry.new(description: resource[:description])
+      registry_target = Harbor2LegacyClient::PutRegistry.new(description: resource[:description])
     else
-      repo_target = Harbor1Client::PutRegistry.new(description: resource[:description])
+      registry_target = Harbor1Client::PutRegistry.new(description: resource[:description])
     end
-    put_registry(repo_target)
+    put_registry(registry_target)
   end
 
   def put_registry(registry)
     api_instance = self.class.do_login
     id = get_registry_id_by_name(resource[:name])
     begin
-      api_instance[:legacy_client].registries_id_put(id, put_registry)
+      api_instance[:legacy_client].registries_id_put(id, registry)
     rescue Harbor2LegacyClient::ApiError => e
       puts "Exception when calling ProductsApi->registries_id_put: #{e}"
     rescue Harbor1Client::ApiError => e
@@ -158,21 +160,21 @@ Puppet::Type.type(:harbor_registry).provide(:swagger) do
     api_instance = self.class.do_login
     insecure_bool = cast_to_bool(resource[:insecure].to_s)
     if api_instance[:api_version] == 2
-      repo_target = Harbor2LegacyClient::PutRegistry.new(insecure: insecure_bool)
+      registry_target = Harbor2LegacyClient::PutRegistry.new(insecure: insecure_bool)
     else
-      repo_target = Harbor1Client::PutRegistry.new(insecure: insecure_bool)
+      registry_target = Harbor1Client::PutRegistry.new(insecure: insecure_bool)
     end
-    put_registry(repo_target)
+    put_registry(registry_target)
   end
 
   def url=(_value)
     api_instance = self.class.do_login
     if api_instance[:api_version] == 2
-      repo_target = Harbor2LegacyClient::PutRegistry.new(url: resource[:url])
+      registry_target = Harbor2LegacyClient::PutRegistry.new(url: resource[:url])
     else
-      repo_target = Harbor1Client::PutRegistry.new(url: resource[:url])
+      registry_target = Harbor1Client::PutRegistry.new(url: resource[:url])
     end
-    put_registry(repo_target)
+    put_registry(registry_target)
   end
 
   def destroy
