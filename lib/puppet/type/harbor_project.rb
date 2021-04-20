@@ -44,4 +44,8 @@ DESC
       is.sort == should.sort
     end
   end
+
+  newproperty(:registry_name) do
+    desc 'Enable the project as a proxy cache using this registry endpoint'
+  end
 end
