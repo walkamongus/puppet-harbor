@@ -16,7 +16,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
         members:       get_project_member_names(project.project_id),
         member_groups: get_project_member_group_names(project.project_id),
         provider:      :swagger,
-        registry_name: project.registry_id.nil? ? nil : get_registry_name(project.registry_id),
+        registry_name: get_project_registry_name(project),
       )
     end
   end
@@ -74,6 +74,15 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     registries = api_instance[:legacy_client].registries_get
     filtered_registries = registries.select { |r| r.id == registry_id }
     filtered_registries.empty? ? nil : filtered_registries[0].name
+  end
+
+  def self.get_project_registry_name(project)
+    api_instance = do_login
+    if api_instance[:api_version] == 2
+      project.registry_id.nil? ? nil : get_registry_name(project.registry_id)
+    else
+      nil
+    end
   end
 
   def self.prefetch(resources)
