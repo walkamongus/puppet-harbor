@@ -47,7 +47,17 @@ DESC
     end
   end
 
-  newproperty(:registry_name) do
-    desc 'Enable the project as a proxy cache using this registry endpoint'
+  newproperty(:guests, array_matching: :all) do
+    desc 'An array of guests for the project'
+    def insync?(is)
+      is.sort == should.sort
+    end
+  end
+
+  newproperty(:guest_groups, array_matching: :all) do
+    desc 'An array of guest groups for the project'
+    def insync?(is)
+      is.sort == should.sort
+    end
   end
 end

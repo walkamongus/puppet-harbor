@@ -407,7 +407,6 @@ class harbor (
   contain 'harbor::config'
 
   class { 'harbor::prepare':
-    version          => $version,
     with_notary      => $with_notary,
     with_trivy       => $with_trivy,
     with_clair       => $with_clair,
