@@ -18,7 +18,6 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
         guests:        get_project_guest_names(project.project_id),
         guest_groups:  get_project_guest_group_names(project.project_id),
         provider:      :swagger,
-        registry_name: project.registry_id.nil? ? nil : get_registry_name(project.registry_id),
       )
     end
   end
@@ -88,13 +87,6 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     names
   end
 
-  def self.get_registry_name(registry_id)
-    api_instance = do_login
-    registries = api_instance[:legacy_client].registries_get
-    filtered_registries = registries.select { |r| r.id == registry_id }
-    filtered_registries.empty? ? nil : filtered_registries[0].name
-  end
-
   def self.prefetch(resources)
     begin
       instances.each do |int|
@@ -133,12 +125,6 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
   def get_projects_with_opts(opts)
     self.class.get_projects_with_opts(opts)
   end
-  
-  def get_registry_id(api_instance, name)
-    registries = api_instance[:legacy_client].registries_get
-    filtered_registries = registries.select { |r| r.name == name }
-    filtered_registries.empty? ? nil : filtered_registries[0].id
-  end  
 
   def create
     api_instance = self.class.do_login
@@ -161,9 +147,6 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
     end
     begin
       if api_instance[:api_version] == 2
-        if resource[:registry_name]
-          np.registry_id = get_registry_id(api_instance, resource[:registry_name])
-        end
         api_instance[:client].create_project(np)
       else
         api_instance[:client].projects_post(np)
