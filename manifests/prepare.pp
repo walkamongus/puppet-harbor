@@ -1,6 +1,7 @@
 # @api private
 # @summary Runs the Harbor prepare script
 class harbor::prepare (
+  $version,
   $with_notary,
   $with_trivy,
   $with_clair,
@@ -11,19 +12,36 @@ class harbor::prepare (
   assert_private()
 
   if $with_notary and !$harbor_ha {
-    $opts_hash = {
-      '--with-notary'      => $with_notary,
-      '--with-trivy'       => $with_trivy,
-      '--with-clair'       => $with_clair,
-      '--ha'               => $harbor_ha,
-      '--with-chartmuseum' => $with_chartmuseum,
+    if versioncmp($version, '2.2.3') >= 0 {
+      $opts_hash = {
+        '--with-notary'      => $with_notary,
+        '--with-trivy'       => $with_trivy,
+        '--ha'               => $harbor_ha,
+        '--with-chartmuseum' => $with_chartmuseum,
+      }
+    } else {
+      $opts_hash = {
+        '--with-notary'      => $with_notary,
+        '--with-trivy'       => $with_trivy,
+        '--with-clair'       => $with_clair,
+        '--ha'               => $harbor_ha,
+        '--with-chartmuseum' => $with_chartmuseum,
+      }
     }
   } else {
-    $opts_hash = {
-      '--with-trivy'       => $with_trivy,
-      '--with-clair'       => $with_clair,
-      '--ha'               => $harbor_ha,
-      '--with-chartmuseum' => $with_chartmuseum,
+    if versioncmp($version, '2.2.3') >= 0 {
+      $opts_hash = {
+        '--with-trivy'       => $with_trivy,
+        '--ha'               => $harbor_ha,
+        '--with-chartmuseum' => $with_chartmuseum,
+      }
+    } else {
+      $opts_hash = {
+        '--with-trivy'       => $with_trivy,
+        '--with-clair'       => $with_clair,
+        '--ha'               => $harbor_ha,
+        '--with-chartmuseum' => $with_chartmuseum,
+      }
     }
   }
 
