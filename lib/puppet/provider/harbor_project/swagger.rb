@@ -16,7 +16,7 @@ Puppet::Type.type(:harbor_project).provide(:swagger) do
         members:       get_project_member_names(project.project_id),
         member_groups: get_project_member_group_names(project.project_id),
         provider:      :swagger,
-        registry_name: registry_name: get_project_registry_name(project),
+        registry_name: get_project_registry_name(project),
       )
     end
   end
