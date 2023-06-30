@@ -4,48 +4,16 @@ class harbor::prepare (
   $version,
   $with_notary,
   $with_trivy,
-  $with_clair,
-  $harbor_ha,
-  $with_chartmuseum,
 ){
 
   assert_private()
 
-  if $with_notary and !$harbor_ha {
-    if versioncmp($version, '2.2.3') >= 0 {
-      $opts_hash = {
-        '--with-notary'      => $with_notary,
-        '--with-trivy'       => $with_trivy,
-        '--ha'               => $harbor_ha,
-        '--with-chartmuseum' => $with_chartmuseum,
-      }
-    } else {
-      $opts_hash = {
-        '--with-notary'      => $with_notary,
-        '--with-trivy'       => $with_trivy,
-        '--with-clair'       => $with_clair,
-        '--ha'               => $harbor_ha,
-        '--with-chartmuseum' => $with_chartmuseum,
-      }
-    }
-  } else {
-    if versioncmp($version, '2.2.3') >= 0 {
-      $opts_hash = {
-        '--with-trivy'       => $with_trivy,
-        '--ha'               => $harbor_ha,
-        '--with-chartmuseum' => $with_chartmuseum,
-      }
-    } else {
-      $opts_hash = {
-        '--with-trivy'       => $with_trivy,
-        '--with-clair'       => $with_clair,
-        '--ha'               => $harbor_ha,
-        '--with-chartmuseum' => $with_chartmuseum,
-      }
-    }
-  }
+  $opts_hash = {
+    '--with-notary'      => $with_notary,
+    '--with-trivy'       => $with_trivy,
+  }.filter |$key, $value| { $value }
 
-  $opts = join(keys($opts_hash.filter |$key, $value| { $value }), ' ')
+  $opts = join(keys($opts_hash), ' ')
 
   file { '/opt/harbor/prepare.sh':
     ensure  => 'file',
