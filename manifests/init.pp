@@ -21,18 +21,6 @@
 #   Specifies whether to include Trivy functionality in the deployment.
 #   Defaults to false
 #
-# @param with_clair
-#   Specifies whether to include Clair functionality in the deployment.
-#   Defaults to false
-#
-# @param with_chartmuseum
-#   Specifies whether to include Helm Chart repository functionality in the deployment.
-#   Defaults to false
-#
-# @param harbor_ha
-#   Specifies whether to include high availability functionality in the deployment.
-#   Defaults to false
-#
 # @param download_source
 #   Specifies download location for the Harbor installation tar file.
 #
@@ -52,9 +40,9 @@
 #   The maximum number of replication workers in job service
 #   Defaults to 10
 #
-# @param absolute_url
-#  Change the value of absolute_url to enabled can enable absolute url in chart
-#  Defaults to disabled
+# @param logger_sweeper_duration
+#   The jobLogger sweeper duration
+#   Defaults to 1 (days)
 #
 # @param customize_crt
 #   When this attribute is on, the prepare script creates private key and root certificate
@@ -154,34 +142,17 @@
 #
 # @param redis_jobservice_db_index
 #
-# @param redis_chartmuseum_db_index
-#
-# @param redis_clair_db_index
+# @param redis_trivy_db_index
 #
 # @param trivy_ignore_unfixed
 #
 # @param trivy_skip_update
 #
+# @param trivy_offline_scan
+#
 # @param trivy_insecure
 #
 # @param trivy_github_token
-#
-# @param clair_db_host
-#   Defaults to postgresql
-#
-# @param clair_db_password
-#   Defaults to root123
-#
-# @param clair_db_port
-#   Defaults to 5432
-#
-# @param clair_db_username
-#   Defaults to postgres
-#
-# @param clair_db
-#   Defaults to postgres
-#
-# @param clair_updaters_interval
 #
 # @param uaa_ca_cert
 #
@@ -206,6 +177,18 @@
 # @param metrics_path
 #   Metrics path
 #
+# @param upload_purging_enabled
+#
+# @param upload_purging_age
+#
+# @param upload_purging_interval
+#
+# @param upload_purging_dryrun
+#
+# @param cache_enabled
+#
+# @param cache_expire_hours
+#
 # @param backup_enabled
 #   Specifies whether to create a backup tar file of the Harbor database if an upgrade is detected
 #   Defaults to false
@@ -221,13 +204,10 @@ class harbor (
   Boolean $external_redis,
   Boolean $with_notary,
   Boolean $with_trivy,
-  Boolean $with_clair,
-  Boolean $with_chartmuseum,
-  Boolean $harbor_ha,
   Stdlib::Host $hostname,
   Enum['http','https'] $ui_url_protocol,
   Integer $max_job_workers,
-  Enum['enabled','disabled'] $absolute_url,
+  Integer $logger_sweeper_duration,
   Enum['on','off'] $customize_crt,
   Stdlib::Absolutepath $ssl_cert,
   Stdlib::Absolutepath $ssl_cert_key,
@@ -260,17 +240,11 @@ class harbor (
   String $redis_password,
   Integer $redis_registry_db_index,
   Integer $redis_jobservice_db_index,
-  Integer $redis_chartmuseum_db_index,
-  Integer $redis_clair_db_index,
+  Integer $redis_trivy_db_index,
   Boolean $trivy_ignore_unfixed,
   Boolean $trivy_skip_update,
+  Boolean $trivy_offline_scan,
   Boolean $trivy_insecure,
-  Stdlib::Host $clair_db_host,
-  String $clair_db_password,
-  Stdlib::Port $clair_db_port,
-  String $clair_db_username,
-  String $clair_db,
-  Integer $clair_updaters_interval,
   String $uaa_ca_cert,
   Enum['filesystem','s3','gcs','azure','swift','oss'] $registry_storage_provider_name,
   String $registry_storage_provider_config,
@@ -281,6 +255,12 @@ class harbor (
   Boolean $metrics,
   Stdlib::Port $metrics_port,
   String $metrics_path,
+  Boolean $upload_purging_enabled,
+  String $upload_purging_age,
+  String $upload_purging_interval,
+  Boolean $upload_purging_dryrun,
+  Boolean $cache_enabled,
+  Integer $cache_expire_hours,
   Boolean $backup_enabled,
   Stdlib::Absolutepath $backup_directory,
   Optional[String] $trivy_github_token = undef,
@@ -348,7 +328,7 @@ class harbor (
     hostname                         => $hostname,
     ui_url_protocol                  => $ui_url_protocol,
     max_job_workers                  => $max_job_workers,
-    absolute_url                     => $absolute_url,
+    logger_sweeper_duration          => $logger_sweeper_duration,
     customize_crt                    => $customize_crt,
     ssl_cert                         => $ssl_cert,
     ssl_cert_key                     => $ssl_cert_key,
@@ -381,18 +361,12 @@ class harbor (
     redis_password                   => $redis_password,
     redis_registry_db_index          => $redis_registry_db_index,
     redis_jobservice_db_index        => $redis_jobservice_db_index,
-    redis_chartmuseum_db_index       => $redis_chartmuseum_db_index,
-    redis_clair_db_index             => $redis_clair_db_index,
+    redis_trivy_db_index             => $redis_trivy_db_index,
     trivy_ignore_unfixed             => $trivy_ignore_unfixed,
     trivy_skip_update                => $trivy_skip_update,
+    trivy_offline_scan               => $trivy_offline_scan,
     trivy_insecure                   => $trivy_insecure,
     trivy_github_token               => $trivy_github_token,
-    clair_db_host                    => $clair_db_host,
-    clair_db_password                => $clair_db_password,
-    clair_db_port                    => $clair_db_port,
-    clair_db_username                => $clair_db_username,
-    clair_db                         => $clair_db,
-    clair_updaters_interval          => $clair_updaters_interval,
     uaa_ca_cert                      => $uaa_ca_cert,
     registry_storage_provider_name   => $registry_storage_provider_name,
     registry_storage_provider_config => $registry_storage_provider_config,
@@ -403,25 +377,25 @@ class harbor (
     metrics                          => $metrics,
     metrics_port                     => $metrics_port,
     metrics_path                     => $metrics_path,
+    upload_purging_enabled           => $upload_purging_enabled,
+    upload_purging_age               => $upload_purging_age,
+    upload_purging_interval          => $upload_purging_interval,
+    upload_purging_dryrun            => $upload_purging_dryrun,
+    cache_enabled                    => $cache_enabled,
+    cache_expire_hours               => $cache_expire_hours,
   }
   contain 'harbor::config'
 
   class { 'harbor::prepare':
-    version          => $version,
-    with_notary      => $with_notary,
-    with_trivy       => $with_trivy,
-    with_clair       => $with_clair,
-    with_chartmuseum => $with_chartmuseum,
-    harbor_ha        => $harbor_ha,
+    version     => $version,
+    with_notary => $with_notary,
+    with_trivy  => $with_trivy,
   }
   contain 'harbor::prepare'
 
   class { 'harbor::service':
     cfg_version          => $_cfg_version,
     with_notary          => $with_notary,
-    with_clair           => $with_clair,
-    with_chartmuseum     => $with_chartmuseum,
-    harbor_ha            => $harbor_ha,
     compose_install_path => $docker::compose::install_path,
   }
   contain 'harbor::service'

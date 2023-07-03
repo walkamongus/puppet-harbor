@@ -3,7 +3,7 @@
   $hostname,
   $ui_url_protocol,
   $max_job_workers,
-  $absolute_url,
+  $logger_sweeper_duration,
   $customize_crt,
   $ssl_cert,
   $ssl_cert_key,
@@ -36,18 +36,12 @@
   $redis_password,
   $redis_registry_db_index,
   $redis_jobservice_db_index,
-  $redis_chartmuseum_db_index,
-  $redis_clair_db_index,
+  $redis_trivy_db_index,
   $trivy_ignore_unfixed,
   $trivy_skip_update,
+  $trivy_offline_scan,
   $trivy_insecure,
   $trivy_github_token,
-  $clair_db_host,
-  $clair_db_password,
-  $clair_db_port,
-  $clair_db_username,
-  $clair_db,
-  $clair_updaters_interval,
   $uaa_ca_cert,
   $registry_storage_provider_name,
   $registry_storage_provider_config,
@@ -58,6 +52,12 @@
   $metrics,
   $metrics_port,
   $metrics_path,
+  $upload_purging_enabled,
+  $upload_purging_age,
+  $upload_purging_interval,
+  $upload_purging_dryrun,
+  $cache_enabled,
+  $cache_expire_hours,
 | -%>
 # Configuration file of Harbor
 
@@ -109,6 +109,12 @@ database:
   # The maximum number of open connections to the database. If it <= 0, then there is no limit on the number of open connections.
   # Note: the default number of connections is 100 for postgres.
   max_open_conns: <%= $db_max_open_conns %>
+  # The maximum amount of time a connection may be reused. Expired connections may be closed lazily before reuse. If it <= 0, connections are not closed due to a connection's age.
+  # The value is a duration string. A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+  conn_max_lifetime: 5m
+  # The maximum amount of time a connection may be idle. Expired connections may be closed lazily before reuse. If it <= 0, connections are not closed due to a connection's idle time.
+  # The value is a duration string. A duration string is a possibly signed sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+  conn_max_idle_time: 0
 
 # The default data volume
 data_volume: <%= $data_volume %>
@@ -117,7 +123,7 @@ data_volume: <%= $data_volume %>
 # Uncomment storage_service setting If you want to using external storage
 # storage_service:
 #   # ca_bundle is the path to the custom root ca certificate, which will be injected into the truststore
-#   # of registry's and chart repository's containers.  This is usually needed when the user hosts a internal storage with self signed certificate.
+#   # of registry's containers.  This is usually needed when the user hosts a internal storage with self signed certificate.
 #   ca_bundle:
 
 #   # storage backend, default is filesystem, options include filesystem, azure, gcs, s3, swift and oss
@@ -126,7 +132,7 @@ data_volume: <%= $data_volume %>
 #     maxthreads: 100
 #   # set disable to true when you want to disable registry redirect
 #   redirect:
-#     disabled: false
+#     disable: false
 
 # Trivy configuration
 #
@@ -145,6 +151,14 @@ trivy:
   # `metadata.json` files and mount them in the `/home/scanner/.cache/trivy/db` path.
   skip_update: <%= $trivy_skip_update %>
   #
+  # The offline_scan option prevents Trivy from sending API requests to identify dependencies.
+  # Scanning JAR files and pom.xml may require Internet access for better detection, but this option tries to avoid it.
+  # For example, the offline mode will not try to resolve transitive dependencies in pom.xml when the dependency doesn't
+  # exist in the local repositories. It means a number of detected vulnerabilities might be fewer in offline mode.
+  # It would work if all the dependencies are in local.
+  # This option doesn't affect DB download. You need to specify "skip-update" as well as "offline-scan" in an air-gapped environment.
+  offline_scan: <%= $trivy_offline_scan %>
+  #
   # insecure The flag to skip verifying registry certificate
   insecure: <%= $trivy_insecure %>
   # github_token The GitHub access token to download Trivy DB
@@ -161,21 +175,17 @@ trivy:
   github_token: <%= $trivy_github_token %>
   <%- } -%>
 
-# Clair configuration
-clair: 
-  # The interval of clair updaters, the unit is hour, set to 0 to disable the updaters.
-  updaters_interval: <%= $clair_updaters_interval %>
-
 jobservice:
   # Maximum number of job workers in job service  
   max_job_workers: <%= $max_job_workers %>
+  # The jobLogger sweeper duration (ignored if `jobLogger` is `stdout`)
+  logger_sweeper_duration: <%= $logger_sweeper_duration %> #days
 
 notification:
+  # Maximum retry count for webhook job
   webhook_job_max_retry: <%= $webhook_job_max_retry %>
-
-chart:
-  # Change the value of absolute_url to enabled can enable absolute url in chart
-  absolute_url: <%= absolute_url %>
+  # HTTP client timeout for webhook job
+  webhook_job_http_client_timeout: 3 #seconds
 
 # Log configurations
 log:
@@ -218,13 +228,6 @@ _version: <%= $cfg_version %>
 #     username: harbor_db_username
 #     password: harbor_db_password
 #     ssl_mode: disable
-#   clair:
-#     host: clair_db_host
-#     port: clair_db_port
-#     db_name: clair_db_name
-#     username: clair_db_username
-#     password: clair_db_password
-#     ssl_mode: disable
 #   notary_signer:
 #     host: notary_signer_db_host
 #     port: notary_signer_db_port
@@ -243,14 +246,13 @@ _version: <%= $cfg_version %>
 <% if $external_redis == 'true' { -%>
 # Uncomment external_redis if using external Redis server
 external_redis:
-  host: <%= $redis_host %>
-  port: <%= $redis_port %>
+  host: <%= $redis_host %>:<%= $redis_port %>
   password: <%= $redis_password %>
   # db_index 0 is for core, it's unchangeable
   registry_db_index: <%= $redis_registry_db_index %>
   jobservice_db_index: <%= $redis_jobservice_db_index %>
-  chartmuseum_db_index: <%= $redis_chartmuseum_db_index %>
-  clair_db_index: <%= $redis_clair_db_index %>
+  trivy_db_index: <%= $redis_trivy_db_index %>
+  idle_timeout_seconds: 30
 <% } %>
 
 <% if ! empty($uaa_ca_cert) { -%>
@@ -275,10 +277,63 @@ proxy:
   components:
     - core
     - jobservice
-    - clair
+    - trivy
 <%- if $metrics { -%>
 metric:
   enabled: true
   port: <%= $metrics_port %>
   path: <%= $metrics_path %>
 <%- } -%>
+
+# Trace related config
+# only can enable one trace provider(jaeger or otel) at the same time,
+# and when using jaeger as provider, can only enable it with agent mode or collector mode.
+# if using jaeger collector mode, uncomment endpoint and uncomment username, password if needed
+# if using jaeger agetn mode uncomment agent_host and agent_port
+# trace:
+#   enabled: true
+#   # set sample_rate to 1 if you wanna sampling 100% of trace data; set 0.5 if you wanna sampling 50% of trace data, and so forth
+#   sample_rate: 1
+#   # # namespace used to differenciate different harbor services
+#   # namespace:
+#   # # attributes is a key value dict contains user defined attributes used to initialize trace provider
+#   # attributes:
+#   #   application: harbor
+#   # # jaeger should be 1.26 or newer.
+#   # jaeger:
+#   #   endpoint: http://hostname:14268/api/traces
+#   #   username:
+#   #   password:
+#   #   agent_host: hostname
+#   #   # export trace data by jaeger.thrift in compact mode
+#   #   agent_port: 6831
+#   # otel:
+#   #   endpoint: hostname:4318
+#   #   url_path: /v1/traces
+#   #   compression: false
+#   #   insecure: true
+#   #   timeout: 10s
+
+# Enable purge _upload directories
+upload_purging:
+  enabled: <%= $upload_purging_enabled %>
+  # remove files in _upload directories which exist for a period of time, default is one week.
+  age: <%= $upload_purging_age %>
+  # the interval of the purge operations
+  interval: <%= $upload_purging_interval %>
+  dryrun: <%= $upload_purging_dryrun %>
+
+# Cache layer configurations
+# If this feature enabled, harbor will cache the resource
+# `project/project_metadata/repository/artifact/manifest` in the redis
+# which can especially help to improve the performance of high concurrent
+# manifest pulling.
+# NOTICE
+# If you are deploying Harbor in HA mode, make sure that all the harbor
+# instances have the same behaviour, all with caching enabled or disabled,
+# otherwise it can lead to potential data inconsistency.
+cache:
+  # not enabled by default
+  enabled: <%= $cache_enabled %>
+  # keep cache for one day by default
+  expire_hours: <%= $cache_expire_hours %>

@@ -17,11 +17,11 @@ describe 'harbor' do
       describe 'harbor::install' do
         context 'with init default params' do
           it do
-            is_expected.to contain_archive('/tmp/harbor-offline-installer-v2.1.2.tgz').with(
-              'source' => 'https://github.com/goharbor/harbor/releases/download/v2.1.2/harbor-offline-installer-v2.1.2.tgz'
+            is_expected.to contain_archive('/tmp/harbor-offline-installer-v2.8.2.tgz').with(
+              'source' => 'https://github.com/goharbor/harbor/releases/download/v2.8.2/harbor-offline-installer-v2.8.2.tgz'
             )
           end
-          it { is_expected.to contain_file('/opt/harbor-v2.1.2') }
+          it { is_expected.to contain_file('/opt/harbor-v2.8.2') }
           it { is_expected.to contain_file('/opt/harbor') }
           it { is_expected.to contain_docker__image('goharbor/harbor-log') }
         end
@@ -47,7 +47,7 @@ describe 'harbor' do
       describe 'harbor::service' do
         context 'with init default params' do
           it do
-            is_expected.to contain_file('harbor_service_unit')
+            is_expected.to contain_file('harbor_service_unit').with_content(%r{ExecStart=/usr/local/bin/docker-compose -f /opt/harbor/docker-compose.yml up --remove-orphans})
             is_expected.to contain_service('harbor')
           end
         end

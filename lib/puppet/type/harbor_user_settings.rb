@@ -23,42 +23,6 @@ DESC
     newvalues('db_auth', 'ldap_auth', 'uaa_auth', 'oidc_auth')
   end
 
-  newproperty(:email_from) do
-    desc 'The sender name for Email notification'
-    defaultto 'admin <sample_admin@mydomain.com>'
-  end
-
-  newproperty(:email_host) do
-    desc 'The hostname of SMTP server that sends Email notification'
-    defaultto 'smtp.mydomain.com'
-  end
-
-  newproperty(:email_port) do
-    desc 'The port of SMTP server'
-    defaultto 25
-  end
-
-  newproperty(:email_identity) do
-    desc 'By default it is empty so the email_username is picked'
-  end
-
-  newproperty(:email_username) do
-    desc 'The username for authentication against SMTP server'
-    defaultto 'sample_admin@mydomain.com'
-  end
-
-  newproperty(:email_ssl) do
-    desc 'When set to true the system will access Email server via TLS by default. If set to false, it still will handle "STARTTLS" from server side'
-    defaultto false
-    newvalues(true, false)
-  end
-
-  newproperty(:email_insecure) do
-    desc 'Whether or not the certificate will be verified when Harbor tries to access the email server'
-    defaultto false
-    newvalues(true, false)
-  end
-
   newproperty(:ldap_url) do
     desc 'The URL of LDAP server'
   end
